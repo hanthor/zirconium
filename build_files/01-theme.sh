@@ -114,7 +114,7 @@ dnf -y remove alacritty
 declare -a ENABLEREPO_FLAGS=()
 for copr_repo in "${COPR_REPOS_USED[@]}"; do
     # Convert owner/repo to copr namespace format
-    local repo_namespace="copr:copr.fedorainfracloud.org:${copr_repo//\//:}"
+    repo_namespace="copr:copr.fedorainfracloud.org:${copr_repo//\//:}"
     ENABLEREPO_FLAGS+=("--enablerepo=${repo_namespace}")
 done
 
