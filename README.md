@@ -9,7 +9,7 @@ Zirconium is built primarily for container-focused development and day-to-day us
 ## How do I use this?
 Currently, the best way to install Zirconium is to rebase from an existing Fedora Atomic install. We recommend [Bluefin](https://projectbluefin.io/), but it doesn't really matter.
 
-Once you have some flavour of Fedora Atomic installed, run `sudo bootc switch ghcr.io/zirconium-dev/zirconium` 
+Once you have some flavour of Fedora Atomic installed, run `sudo bootc switch ghcr.io/hanthor/zirconium` 
 
 If you're having issues, ask for help in our [Discord](https://discord.gg/mmgNQpxwhW). We're working on ISOs.
 
