@@ -41,6 +41,9 @@ jobs:
         image_name: [zirconium, zirconium-nvidia]
 
     steps:
+      - name: Free disk space
+        uses: hastd/free-disk-space@78ec0490f953d89f024c95d0c293e6307ceac02e # v0.1.1
+
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
 
