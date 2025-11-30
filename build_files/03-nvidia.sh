@@ -13,7 +13,7 @@ dnf5 config-manager setopt fedora-multimedia.enabled=1
 dnf5 install -y mesa-dri-drivers.i686 mesa-filesystem.i686 mesa-libEGL.i686 mesa-libGL.i686 mesa-libgbm.i686 mesa-va-drivers.i686 mesa-vulkan-drivers.i686
 dnf5 config-manager setopt fedora-multimedia.enabled=0
 
-KERNEL_VERSION="$(ls /lib/modules)"
+KERNEL_VERSION="$(find "/usr/lib/modules" -maxdepth 1 -type d ! -path "/usr/lib/modules" -exec basename '{}' ';' | sort | tail -n 1)"
 
 curl --retry 3 -Lo /etc/yum.repos.d/negativo17-fedora-nvidia.repo https://negativo17.org/repos/fedora-nvidia.repo
 sed -i '/^enabled=1/a\priority=90' /etc/yum.repos.d/negativo17-fedora-nvidia.repo
