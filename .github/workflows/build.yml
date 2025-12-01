@@ -94,7 +94,7 @@ jobs:
         env:
           BUILD_FLAVOR: ${{ matrix.flavor }}
         run: |
-          echo "IMAGE_NAME=${IMAGE_NAME}-${BUILD_FLAVOR}" >> $GITHUB_ENV
+          echo "BUILD_FLAVOR=${IMAGE_NAME}-${BUILD_FLAVOR}" >> $GITHUB_ENV
 
       - name: Build image
         id: build
