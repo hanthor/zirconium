@@ -142,4 +142,6 @@ LATEST_RELEASE_FONT="$(curl "https://api.github.com/repos/subframe7536/maple-fon
 curl -fSsLo "${MAPLE_TMPDIR}/maple.zip" "${LATEST_RELEASE_FONT}"
 unzip "${MAPLE_TMPDIR}/maple.zip" -d "/usr/share/fonts/Maple Mono"
 
+fc-cache --force --really-force --system-only --verbose # recreate font-cache to pick up the added fonts
+
 echo 'source /usr/share/zirconium/shell/pure.bash' | tee -a "/etc/bashrc"
