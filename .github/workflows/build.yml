@@ -94,13 +94,16 @@ jobs:
         env:
           BUILD_FLAVOR: ${{ matrix.flavor }}
         run: |
-          echo "BUILD_FLAVOR=${IMAGE_NAME}-${BUILD_FLAVOR}" >> $GITHUB_ENV
+          if [ "${BUILD_FLAVOR}" != "" ] ; then
+            echo "IMAGE_NAME=${IMAGE_NAME}-${{ matrix.flavor }}" >> $GITHUB_ENV
+          fi
 
       - name: Build image
         id: build
         env:
           BUILD_FLAVOR: ${{ matrix.flavor }}
         run: |
+          set -x
           sudo podman build "--build-arg=BUILD_FLAVOR=${BUILD_FLAVOR}" -t "${IMAGE_NAME}:${DEFAULT_TAG}" -f ./Containerfile .
 
       - name: Run Rechunker
