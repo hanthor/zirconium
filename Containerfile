@@ -25,6 +25,11 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     /ctx/build/02-extras.sh
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    /ctx/build/03-nvidia.sh
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=tmpfs,dst=/var \
+    --mount=type=tmpfs,dst=/tmp \
     /ctx/build/99-cleanup.sh
 
 # This is handy for VM testing

@@ -18,7 +18,3 @@ systemctl preset docker.service docker.socket
 cat >/usr/lib/sysusers.d/docker.conf <<'EOF'
 g docker -
 EOF
-
-if [[ "${BUILD_FLAVOR}" =~ "nvidia" ]] ; then
-  /ctx/build/03-nvidia.sh
-fi
