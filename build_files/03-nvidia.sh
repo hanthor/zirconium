@@ -64,7 +64,6 @@ WantedBy=multi-user.target
 EOF
 
 systemctl enable nvctk-cdi.service
-
 systemctl disable akmods-keygen@akmods-keygen.service
 systemctl mask akmods-keygen@akmods-keygen.service
 systemctl disable akmods-keygen.target
