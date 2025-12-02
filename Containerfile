@@ -1,3 +1,5 @@
+ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
+
 FROM scratch AS ctx
 
 COPY build_files /build
@@ -5,6 +7,7 @@ COPY system_files /files
 COPY cosign.pub /files/etc/pki/containers/zirconium.pub
 
 FROM quay.io/fedora/fedora-bootc:43
+ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
@@ -20,6 +23,9 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
     /ctx/build/02-extras.sh
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    /ctx/build/03-nvidia.sh
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \

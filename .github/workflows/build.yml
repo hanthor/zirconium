@@ -35,7 +35,20 @@ jobs:
       packages: write
       id-token: write
 
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: ["", "nvidia"]
+
     steps:
+      - name: Mount BTRFS for podman storage
+        id: container-storage-action
+        uses: ublue-os/container-storage-action@911baca08baf30c8654933e9e9723cb399892140
+        continue-on-error: true
+        with:
+          target-dir: /var/lib/containers
+          mount-opts: compress-force=zstd:2
+
       - name: Checkout
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v5
 
@@ -77,10 +90,21 @@ jobs:
           sep-tags: " "
           sep-annotations: " "
 
+      - name: Change image name depending on build flavor
+        env:
+          BUILD_FLAVOR: ${{ matrix.flavor }}
+        run: |
+          if [ "${BUILD_FLAVOR}" != "" ] ; then
+            echo "IMAGE_NAME=${IMAGE_NAME}-${{ matrix.flavor }}" >> $GITHUB_ENV
+          fi
+
       - name: Build image
         id: build
+        env:
+          BUILD_FLAVOR: ${{ matrix.flavor }}
         run: |
-          sudo podman build -t "${{env.IMAGE_NAME}}:${{env.DEFAULT_TAG}}" -f ./Containerfile .
+          set -x
+          sudo podman build "--build-arg=BUILD_FLAVOR=${BUILD_FLAVOR}" -t "${IMAGE_NAME}:${DEFAULT_TAG}" -f ./Containerfile .
 
       - name: Run Rechunker
         id: rechunk
@@ -90,12 +114,11 @@ jobs:
           ref: "localhost/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
           prev-ref: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
           skip_compression: true
-          version: ${{ env.CENTOS_VERSION }}
           labels: ${{ steps.metadata.outputs.labels }} # Rechunk strips out all the labels during build, this needs to be reapplied here with newline separator
 
       - name: Load in podman and tag
         run: |
-          IMAGE=$(podman pull ${{ steps.rechunk.outputs.ref }})
+          IMAGE="$(podman pull ${{ steps.rechunk.outputs.ref }})"
           sudo rm -rf ${{ steps.rechunk.outputs.output }}
           for tag in ${{ steps.metadata.outputs.tags }}; do
             podman tag $IMAGE ${{ env.IMAGE_NAME }}:$tag
