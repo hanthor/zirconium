@@ -12,13 +12,13 @@ Currently, the best way to install Zirconium is to rebase from an existing Fedor
 Once you have some flavour of Fedora Atomic installed, run this command:
 
 ```
-sudo bootc switch ghcr.io/zirconium-dev/zirconium
+sudo bootc switch ghcr.io/zirconium-dev/zirconium:latest
 ```
 
 If you also have NVIDIA GPU (GTX 16xx or RTX series), run this command instead:
 
 ```
-sudo bootc switch ghcr.io/zirconium-dev/zirconium-nvidia
+sudo bootc switch ghcr.io/zirconium-dev/zirconium-nvidia:latest
 ```
 
 If you're having issues, ask for help in our [Discord](https://discord.gg/mmgNQpxwhW). We're working on ISOs.
