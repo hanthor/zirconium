@@ -127,6 +127,7 @@ systemctl preset --global xwayland-satellite
 
 git clone "https://github.com/noctalia-dev/noctalia-shell.git" /usr/share/zirconium/noctalia-shell
 cp /usr/share/zirconium/skel/Pictures/Wallpapers/mountains.png /usr/share/zirconium/noctalia-shell/Assets/Wallpaper/noctalia.png
+cp -rf /usr/share/zirconium/skel/* /etc/skel
 git clone "https://github.com/zirconium-dev/zdots.git" /usr/share/zirconium/zdots
 install -d /etc/niri/
 cp -f /usr/share/zirconium/zdots/dot_config/niri/config.kdl /etc/niri/config.kdl
