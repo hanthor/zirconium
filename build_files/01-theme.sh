@@ -7,8 +7,9 @@ install -d /usr/share/zirconium/
 dnf -y copr enable yalter/niri-git
 dnf -y copr disable yalter/niri-git
 echo "priority=1" | tee -a /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:yalter:niri-git.repo
-dnf -y --enablerepo copr:copr.fedorainfracloud.org:yalter:niri-git install niri
-rm -rf /usr/share/doc/niri
+dnf -y --enablerepo copr:copr.fedorainfracloud.org:yalter:niri-git \
+    install --setopt=install_weak_deps=False \
+    niri
 
 dnf -y copr enable avengemedia/danklinux
 dnf -y copr disable avengemedia/danklinux
@@ -31,7 +32,6 @@ dnf -y --enablerepo copr:copr.fedorainfracloud.org:zirconium:packages install \
     matugen \
     cliphist
 
-dnf -y remove alacritty
 dnf -y install \
     brightnessctl \
     cava \
@@ -42,7 +42,6 @@ dnf -y install \
     foot \
     fpaste \
     fzf \
-    gamescope \
     git-core \
     glycin-thumbnailer \
     gnome-keyring \
@@ -62,10 +61,9 @@ dnf -y install \
     wl-clipboard \
     wlsunset \
     xdg-desktop-portal-gnome \
+    xdg-desktop-portal-gtk \
     xdg-user-dirs \
     xwayland-satellite
-rm -rf /usr/share/doc/just
-ln -s footclient /usr/bin/ghostty
 
 dnf install -y --setopt=install_weak_deps=False \
     kf6-kirigami \
@@ -74,8 +72,7 @@ dnf install -y --setopt=install_weak_deps=False \
     plasma-breeze \
     kf6-qqc2-desktop-style
 
-sed -i '/gnome_keyring.so/ s/-auth/auth/ ; /gnome_keyring.so/ s/-session/session/' /etc/pam.d/greetd
-cat /etc/pam.d/greetd
+sed --sandbox -i -e '/gnome_keyring.so/ s/-auth/auth/ ; /gnome_keyring.so/ s/-session/session/' /etc/pam.d/greetd
 
 # Codecs for video thumbnails on nautilus
 dnf config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-multimedia.repo
