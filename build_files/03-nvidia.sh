@@ -15,7 +15,7 @@ sed -i '/^enabled=/a\priority=90' /etc/yum.repos.d/fedora-nvidia.repo
 dnf -y install --enablerepo=fedora-nvidia akmod-nvidia
 mkdir -p /var/tmp # for akmods
 chmod 1777 /var/tmp
-sed -i "s/^MODULE_VARIANT=.*/MODULE_VARIANT=kernel-open/" /etc/nvidia/kernel.conf
+dnf -y install gcc-c++
 akmods --force --kernels "${KERNEL_VERSION}" --kmod "nvidia"
 cat /var/cache/akmods/nvidia/*.failed.log || true
 
