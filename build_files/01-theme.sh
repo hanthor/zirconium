@@ -130,6 +130,7 @@ install -d /etc/niri/
 cp -f /usr/share/zirconium/zdots/dot_config/niri/config.kdl /etc/niri/config.kdl
 file /etc/niri/config.kdl | grep -F -e "empty" -v
 stat /etc/niri/config.kdl
+cp -f /usr/share/zirconium/pixmaps/watermark.png /usr/share/plymouth/themes/spinner/watermark.png
 
 mkdir -p "/usr/share/fonts/Maple Mono"
 
