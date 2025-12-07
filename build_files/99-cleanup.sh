@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-HOME_URL="https://github.com/valerie-tar-gz/zirconium"
+# See https://github.com/CentOS/centos-bootc/issues/191
+mkdir -p /var/roothome
+
+HOME_URL="https://github.com/zirconium-dev/zirconium"
 echo "zirconium" | tee "/etc/hostname"
 # OS Release File (changed in order with upstream)
 # TODO: change ANSI_COLOR
@@ -12,7 +15,7 @@ s|^VARIANT_ID=.*|VARIANT_ID=""|
 s|^HOME_URL=.*|HOME_URL=\"${HOME_URL}\"|
 s|^BUG_REPORT_URL=.*|BUG_REPORT_URL=\"${HOME_URL}/issues\"|
 s|^SUPPORT_URL=.*|SUPPORT_URL=\"${HOME_URL}/issues\"|
-s|^CPE_NAME=\".*\"|CPE_NAME=\"cpe:/o:valerie-tar-gz:zirconium\"|
+s|^CPE_NAME=\".*\"|CPE_NAME=\"cpe:/o:zirconium-dev:zirconium\"|
 s|^DOCUMENTATION_URL=.*|DOCUMENTATION_URL=\"${HOME_URL}\"|
 s|^DEFAULT_HOSTNAME=.*|DEFAULT_HOSTNAME="zirconium"|
 
