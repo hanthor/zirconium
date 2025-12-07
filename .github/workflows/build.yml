@@ -39,14 +39,16 @@ jobs:
       image_tag: ${{ steps.build.outputs.image_tag }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
-
-      - name: Maximize build space
+      - name: Mount BTRFS for podman storage
         if: ${{ matrix.platform != 'arm64' }}
-        uses: ublue-os/container-storage-action@main
+        uses: ublue-os/container-storage-action@911baca08baf30c8654933e9e9723cb399892140
+        continue-on-error: true
         with:
           target-dir: /var/lib/containers
+          mount-opts: compress-force=zstd:2
+
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Change image name depending on build flavor
         env:
@@ -83,6 +85,7 @@ jobs:
           RECHUNK_REF: ${{ steps.rechunk.outputs.ref }}
           RECHUNK_LOCATION: ${{ steps.rechunk.outputs.location }}
         run: |
+          set -x
           if [ "${RECHUNK_RAN}" == "true" ] ; then
             IMAGE="$(podman pull "${RECHUNK_REF}")"
             sudo rm -rf "${RECHUNK_LOCATION}"
