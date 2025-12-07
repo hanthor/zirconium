@@ -64,10 +64,5 @@ reset-niri:
     #!/usr/bin/env bash
     zjust zdots-reset "${HOME}/.config/niri"
 
-use-foot:
-    #!/usr/bin/env bash
-    sed -i 's/spawn "ghostty" "+new-window"/spawn "footclient"/g' "${HOME}/.config/niri/config.kdl"
-    sed -i "s/ghostty/foot/g" "${HOME}/.config/niri/config.kdl"
-
 update-greeter:
     dms greeter sync
