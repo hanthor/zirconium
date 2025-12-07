@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-TARGET_ZIRCONIUM_MOTD_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/zirconium/no-show-user-motd"
-if test ! -e "$TARGET_ZIRCONIUM_MOTD_CONFIG"; then
+if test ! -e "${XDG_CONFIG_HOME:-$HOME/.config}/zirconium/no-show-user-motd" ; then
   reset=$'\e[0m'
   # bold=$'\e[1m'
   # link=$'\e[38;2;23;118;122m'
@@ -17,8 +16,6 @@ if test ! -e "$TARGET_ZIRCONIUM_MOTD_CONFIG"; then
     ${slight_red} zjust zdots-update ${reset}               │ Update your unmodified dotfiles
     ${slight_red} zjust update-greeter ${reset}             │ Update your greeter with modifications from your current user
     ${slight_red} zjust reset-niri ${reset}                 │ Reset niri to the default configuration
-
-    We've moved to foot as our main terminal, run ${slight_red} zjust use-foot ${reset} or reset niri to update your configuration
 
 EOF
 fi
