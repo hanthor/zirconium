@@ -13,27 +13,30 @@ dnf -y install --enablerepo='tailscale-stable' tailscale
 
 systemctl enable tailscaled
 
-dnf -y install \
-    NetworkManager-wifi \
-    atheros-firmware \
-    brcmfmac-firmware \
-    iwlegacy-firmware \
-    iwlwifi-dvm-firmware \
-    iwlwifi-mvm-firmware \
-    mt7xxx-firmware \
-    nxpwireless-firmware \
-    realtek-firmware \
-    tiwilink-firmware \
-
-# This package adds "[systemd] Failed Units: *" to the bashrc startup
-dnf -y remove console-login-helper-messages \
-    chrony
-
 dnf install -y \
   alsa-firmware \
   alsa-sof-firmware \
   alsa-tools-firmware \
   intel-audio-firmware
+
+dnf -y install \
+  NetworkManager-wifi \
+  atheros-firmware \
+  brcmfmac-firmware \
+  iwlegacy-firmware \
+  iwlwifi-dvm-firmware \
+  iwlwifi-mvm-firmware \
+  mt7xxx-firmware \
+  nxpwireless-firmware \
+  realtek-firmware \
+  tiwilink-firmware
+
+dnf -y remove \
+  console-login-helper-messages \
+  chrony \
+  sssd* \
+  qemu-user-static* \
+  toolbox
 
 dnf -y install \
   audit \
@@ -42,7 +45,6 @@ dnf -y install \
   firewalld \
   fuse \
   fuse-common \
-  fuse-devel \
   fwupd \
 	gvfs-mtp \
   gvfs-smb \
@@ -53,7 +55,6 @@ dnf -y install \
   man-db \
   plymouth \
   plymouth-system-theme \
-  rclone \
   steam-devices \
   systemd-container \
   tuned \
@@ -89,9 +90,9 @@ systemctl preset systemd-resolved.service
 dnf -y copr enable ublue-os/packages
 dnf -y copr disable ublue-os/packages
 dnf -y --enablerepo copr:copr.fedorainfracloud.org:ublue-os:packages install \
-	ublue-brew \
-	uupd \
-	ublue-os-udev-rules
+  ublue-brew \
+  uupd \
+  ublue-os-udev-rules
 
 # ts so annoying :face_holding_back_tears: :v: 67
 sed -i 's|uupd|& --disable-module-distrobox|' /usr/lib/systemd/system/uupd.service
@@ -99,9 +100,11 @@ sed -i 's|uupd|& --disable-module-distrobox|' /usr/lib/systemd/system/uupd.servi
 systemctl enable brew-setup.service
 systemctl enable uupd.timer
 
-dnf -y copr enable ublue-os/flatpak-test
-dnf -y copr disable ublue-os/flatpak-test
-dnf -y --repo=copr:copr.fedorainfracloud.org:ublue-os:flatpak-test swap flatpak flatpak
-dnf -y --repo=copr:copr.fedorainfracloud.org:ublue-os:flatpak-test swap flatpak-libs flatpak-libs
-dnf -y --repo=copr:copr.fedorainfracloud.org:ublue-os:flatpak-test swap flatpak-session-helper flatpak-session-helper
-rpm -q flatpak --qf "%{NAME} %{VENDOR}\n" | grep ublue-os
+if [ "$(rpm -E "%{fedora}")" == 43 ] ; then
+  dnf -y copr enable ublue-os/flatpak-test
+  dnf -y copr disable ublue-os/flatpak-test
+  dnf -y --repo=copr:copr.fedorainfracloud.org:ublue-os:flatpak-test swap flatpak flatpak
+  dnf -y --repo=copr:copr.fedorainfracloud.org:ublue-os:flatpak-test swap flatpak-libs flatpak-libs
+  dnf -y --repo=copr:copr.fedorainfracloud.org:ublue-os:flatpak-test swap flatpak-session-helper flatpak-session-helper
+  rpm -q flatpak --qf "%{NAME} %{VENDOR}\n" | grep ublue-os
+fi
