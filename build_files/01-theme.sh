@@ -13,11 +13,14 @@ dnf -y --enablerepo copr:copr.fedorainfracloud.org:yalter:niri-git \
 
 dnf -y copr enable jreilly1821/danklinux
 dnf -y copr disable jreilly1821/danklinux
+dnf -y copr enable  yselkowitz/cosmic-epel
+dnf -y copr disable yselkowitz/cosmic-epel
 dnf -y --enablerepo copr:copr.fedorainfracloud.org:jreilly1821:danklinux install quickshell-git
 
 
 dnf -y \
     --enablerepo copr:copr.fedorainfracloud.org:jreilly1821:danklinux \
+    --enablerepo copr:copr.fedorainfracloud.org:yselkowitz:cosmic-epel \
     install --setopt=install_weak_deps=False \
     dms \
     dms-cli \
