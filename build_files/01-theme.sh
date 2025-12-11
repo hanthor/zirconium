@@ -25,11 +25,7 @@ dnf -y \
     dms \
     dms-cli \
     dms-greeter \
-    dgop
-
-dnf -y copr enable zirconium/packages
-dnf -y copr disable zirconium/packages
-dnf -y --enablerepo copr:copr.fedorainfracloud.org:zirconium:packages install \
+    dgop \
     matugen \
     cliphist
 
