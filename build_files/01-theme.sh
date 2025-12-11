@@ -56,6 +56,7 @@ dnf -y install \
     xdg-user-dirs
 
 # Install packages from Fedora 43 that are not available in EPEL or CentOS
+# These are installed directly from kojipkgs URLs
 # Detect architecture
 ARCH=$(uname -m)
 case "${ARCH}" in
@@ -71,30 +72,23 @@ case "${ARCH}" in
     ;;
 esac
 
-# Add Fedora 43 repository temporarily
-cat > /etc/yum.repos.d/fedora43-temp.repo << REPOEOF
-[fedora43-temp]
-name=Fedora 43 - ${FEDORA_ARCH}
-baseurl=https://download.fedoraproject.org/pub/fedora/linux/releases/43/Everything/${FEDORA_ARCH}/os/
-enabled=0
-gpgcheck=0
-skip_if_unavailable=1
-REPOEOF
+# Base URL for Fedora 43 packages on koji
+KOJI_BASE="https://kojipkgs.fedoraproject.org//packages"
 
-# Install packages from Fedora 43
-dnf -y --enablerepo=fedora43-temp install \
-    brightnessctl \
-    cava \
-    foot \
-    glycin-thumbnailer \
-    input-remapper \
-    tuigreet \
-    udiskie \
-    wlsunset \
-    xwayland-satellite
+# Install arch-specific packages from Fedora 43
+dnf -y install \
+    "${KOJI_BASE}/brightnessctl/0.5.1/14.fc43/${FEDORA_ARCH}/brightnessctl-0.5.1-14.fc43.${FEDORA_ARCH}.rpm" \
+    "${KOJI_BASE}/cava/0.10.2/5.fc43/${FEDORA_ARCH}/cava-0.10.2-5.fc43.${FEDORA_ARCH}.rpm" \
+    "${KOJI_BASE}/foot/1.25.0/1.fc43/${FEDORA_ARCH}/foot-1.25.0-1.fc43.${FEDORA_ARCH}.rpm" \
+    "${KOJI_BASE}/glycin-thumbnailer/2.0.4/1.fc43/${FEDORA_ARCH}/glycin-thumbnailer-2.0.4-1.fc43.${FEDORA_ARCH}.rpm" \
+    "${KOJI_BASE}/tuigreet/0.9.1/4.fc43/${FEDORA_ARCH}/tuigreet-0.9.1-4.fc43.${FEDORA_ARCH}.rpm" \
+    "${KOJI_BASE}/wlsunset/0.4.0/4.fc43/${FEDORA_ARCH}/wlsunset-0.4.0-4.fc43.${FEDORA_ARCH}.rpm" \
+    "${KOJI_BASE}/xwayland-satellite/0.7/1.fc43/${FEDORA_ARCH}/xwayland-satellite-0.7-1.fc43.${FEDORA_ARCH}.rpm"
 
-# Remove the temporary repo
-rm -f /etc/yum.repos.d/fedora43-temp.repo
+# Install noarch packages from Fedora 43
+dnf -y install \
+    "${KOJI_BASE}/input-remapper/2.2.0/1.fc43/noarch/input-remapper-2.2.0-1.fc43.noarch.rpm" \
+    "${KOJI_BASE}/udiskie/2.5.8/2.fc43/noarch/udiskie-2.5.8-2.fc43.noarch.rpm"
 
 dnf install -y --setopt=install_weak_deps=False \
     kf6-kirigami \
