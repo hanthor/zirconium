@@ -2,14 +2,28 @@
 
 set -xeuo pipefail
 
-systemctl enable systemd-timesyncd
-systemctl enable systemd-resolved.service
+dnf -y remove \
+  subscription-manager \
+  console-login-helper-messages \
+  chrony \
+  sssd* \
+  qemu-user-static* \
+  toolbox
 
-dnf -y install 'dnf5-command(config-manager)'
+# EPEL
+dnf -y install "https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm"
+dnf config-manager --set-enabled crb
 
-dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
-dnf config-manager setopt tailscale-stable.enabled=0
-dnf -y install --enablerepo='tailscale-stable' tailscale
+# Multimidia codecs
+dnf config-manager --add-repo=https://negativo17.org/repos/epel-multimedia.repo
+dnf config-manager --set-disabled epel-multimedia
+dnf -y install --enablerepo=epel-multimedia \
+    ffmpeg libavcodec @multimedia gstreamer1-plugins-{bad-free,bad-free-libs,good,base} lame{,-libs} libjxl ffmpegthumbnailer
+
+# Tailscale
+dnf config-manager --add-repo=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+dnf config-manager --set-disabled tailscale-stable
+dnf -y install --enablerepo=tailscale-stable tailscale
 
 systemctl enable tailscaled
 
@@ -17,9 +31,7 @@ dnf install -y \
   alsa-firmware \
   alsa-sof-firmware \
   alsa-tools-firmware \
-  intel-audio-firmware
-
-dnf -y install \
+  intel-audio-firmware \
   NetworkManager-wifi \
   atheros-firmware \
   brcmfmac-firmware \
@@ -31,13 +43,6 @@ dnf -y install \
   realtek-firmware \
   tiwilink-firmware
 
-dnf -y remove \
-  console-login-helper-messages \
-  chrony \
-  sssd* \
-  qemu-user-static* \
-  toolbox
-
 dnf -y install \
   audit \
   audispd-plugins \
@@ -48,23 +53,21 @@ dnf -y install \
   fwupd \
 	gvfs-mtp \
   gvfs-smb \
-  ifuse \
-	jmtpfs \
   libcamera{,-{v4l2,gstreamer,tools}} \
-  libimobiledevice \
   man-db \
   plymouth \
   plymouth-system-theme \
   steam-devices \
   systemd-container \
+  systemd-resolved \
   tuned \
   tuned-ppd \
   unzip \
-  uxplay \
   whois
 
 systemctl enable auditd
 systemctl enable firewalld
+systemctl enable systemd-resolved.service
 
 sed -i 's|^ExecStart=.*|ExecStart=/usr/bin/bootc update --quiet|' /usr/lib/systemd/system/bootc-fetch-apply-updates.service
 sed -i 's|^OnUnitInactiveSec=.*|OnUnitInactiveSec=7d\nPersistent=true|' /usr/lib/systemd/system/bootc-fetch-apply-updates.timer
@@ -100,11 +103,3 @@ sed -i 's|uupd|& --disable-module-distrobox|' /usr/lib/systemd/system/uupd.servi
 systemctl enable brew-setup.service
 systemctl enable uupd.timer
 
-if [ "$(rpm -E "%{fedora}")" == 43 ] ; then
-  dnf -y copr enable ublue-os/flatpak-test
-  dnf -y copr disable ublue-os/flatpak-test
-  dnf -y --repo=copr:copr.fedorainfracloud.org:ublue-os:flatpak-test swap flatpak flatpak
-  dnf -y --repo=copr:copr.fedorainfracloud.org:ublue-os:flatpak-test swap flatpak-libs flatpak-libs
-  dnf -y --repo=copr:copr.fedorainfracloud.org:ublue-os:flatpak-test swap flatpak-session-helper flatpak-session-helper
-  rpm -q flatpak --qf "%{NAME} %{VENDOR}\n" | grep ublue-os
-fi

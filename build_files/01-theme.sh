@@ -11,15 +11,13 @@ dnf -y --enablerepo copr:copr.fedorainfracloud.org:yalter:niri-git \
     install --setopt=install_weak_deps=False \
     niri
 
-dnf -y copr enable avengemedia/danklinux
-dnf -y copr disable avengemedia/danklinux
-dnf -y --enablerepo copr:copr.fedorainfracloud.org:avengemedia:danklinux install quickshell-git
+dnf -y copr enable jreilly1821/danklinux
+dnf -y copr disable jreilly1821/danklinux
+dnf -y --enablerepo copr:copr.fedorainfracloud.org:jreilly1821:danklinux install quickshell-git
 
-dnf -y copr enable avengemedia/dms-git
-dnf -y copr disable avengemedia/dms-git
+
 dnf -y \
-    --enablerepo copr:copr.fedorainfracloud.org:avengemedia:dms-git \
-    --enablerepo copr:copr.fedorainfracloud.org:avengemedia:danklinux \
+    --enablerepo copr:copr.fedorainfracloud.org:jreilly1821:danklinux \
     install --setopt=install_weak_deps=False \
     dms \
     dms-cli \
