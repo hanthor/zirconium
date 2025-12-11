@@ -29,39 +29,72 @@ dnf -y \
     matugen \
     cliphist
 
+# Install packages available in CentOS/EPEL
 dnf -y install \
-    brightnessctl \
-    cava \
     chezmoi \
     ddcutil \
     fastfetch \
     flatpak \
-    foot \
     fpaste \
     fzf \
     git-core \
-    glycin-thumbnailer \
     gnome-keyring \
     gnome-keyring-pam \
     greetd \
     greetd-selinux \
-    input-remapper \
     just \
     libwayland-server \
     nautilus \
     orca \
     pipewire \
     steam-devices \
-    tuigreet \
-    udiskie \
     webp-pixbuf-loader \
     wireplumber \
     wl-clipboard \
-    wlsunset \
     xdg-desktop-portal-gnome \
     xdg-desktop-portal-gtk \
-    xdg-user-dirs \
+    xdg-user-dirs
+
+# Install packages from Fedora 43 that are not available in EPEL or CentOS
+# Detect architecture
+ARCH=$(uname -m)
+case "${ARCH}" in
+  x86_64|amd64)
+    FEDORA_ARCH="x86_64"
+    ;;
+  aarch64|arm64)
+    FEDORA_ARCH="aarch64"
+    ;;
+  *)
+    echo "Unsupported architecture: ${ARCH}"
+    exit 1
+    ;;
+esac
+
+# Add Fedora 43 repository temporarily
+cat > /etc/yum.repos.d/fedora43-temp.repo << REPOEOF
+[fedora43-temp]
+name=Fedora 43 - ${FEDORA_ARCH}
+baseurl=https://download.fedoraproject.org/pub/fedora/linux/releases/43/Everything/${FEDORA_ARCH}/os/
+enabled=0
+gpgcheck=0
+skip_if_unavailable=1
+REPOEOF
+
+# Install packages from Fedora 43
+dnf -y --enablerepo=fedora43-temp install \
+    brightnessctl \
+    cava \
+    foot \
+    glycin-thumbnailer \
+    input-remapper \
+    tuigreet \
+    udiskie \
+    wlsunset \
     xwayland-satellite
+
+# Remove the temporary repo
+rm -f /etc/yum.repos.d/fedora43-temp.repo
 
 dnf install -y --setopt=install_weak_deps=False \
     kf6-kirigami \
