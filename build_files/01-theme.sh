@@ -24,7 +24,8 @@ dnf -y \
     dms \
     dms-cli \
     dms-greeter \
-    dgop
+    dgop \
+    dsearch
 
 dnf -y copr enable zirconium/packages
 dnf -y copr disable zirconium/packages
@@ -107,6 +108,7 @@ systemctl enable --global chezmoi-init.service
 systemctl enable --global foot.service
 systemctl enable --global chezmoi-update.timer
 systemctl enable --global dms.service
+systemctl enable --global dsearch.service
 systemctl enable --global cliphist.service
 systemctl enable --global gnome-keyring-daemon.socket
 systemctl enable --global gnome-keyring-daemon.service
