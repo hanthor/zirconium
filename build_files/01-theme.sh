@@ -49,6 +49,7 @@ dnf -y install \
     gnome-keyring-pam \
     greetd \
     greetd-selinux \
+    hyfetch \
     input-remapper \
     just \
     nautilus \
