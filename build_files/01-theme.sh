@@ -81,6 +81,7 @@ esac
 KOJI_BASE="https://kojipkgs.fedoraproject.org//packages"
 KOJI_PACKAGES=(
     "${KOJI_BASE}/highway/1.3.0/1.fc43/${FEDORA_ARCH}/highway-1.3.0-1.fc43.${FEDORA_ARCH}.rpm"
+    "${KOJI_BASE}/libjxl/0.11.1/7.fc43/${FEDORA_ARCH}/libjxl-0.11.1-7.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/iniparser/4.2.6/3.fc43/${FEDORA_ARCH}/iniparser-4.2.6-3.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/fcft/3.3.2/2.fc43/${FEDORA_ARCH}/fcft-3.3.2-2.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/utf8proc/2.10.0/2.fc43/${FEDORA_ARCH}/utf8proc-2.10.0-2.fc43.${FEDORA_ARCH}.rpm"
@@ -92,9 +93,9 @@ KOJI_PACKAGES=(
     "${KOJI_BASE}/tuigreet/0.9.1/4.fc43/${FEDORA_ARCH}/tuigreet-0.9.1-4.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/wlsunset/0.4.0/4.fc43/${FEDORA_ARCH}/wlsunset-0.4.0-4.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/xwayland-satellite/0.7/1.fc43/${FEDORA_ARCH}/xwayland-satellite-0.7-1.fc43.${FEDORA_ARCH}.rpm"
-    "${KOJI_BASE}/input-remapper/2.2.0/1.fc43/noarch/input-remapper-2.2.0-1.fc43.noarch.rpm"
-    "${KOJI_BASE}/udiskie/2.5.8/2.fc43/noarch/python3-udiskie-2.5.8-2.fc43.noarch.rpm"
-    "${KOJI_BASE}/udiskie/2.5.8/2.fc43/noarch/udiskie-2.5.8-2.fc43.noarch.rpm"
+    # "${KOJI_BASE}/input-remapper/2.2.0/1.fc43/noarch/input-remapper-2.2.0-1.fc43.noarch.rpm"
+    # "${KOJI_BASE}/udiskie/2.5.8/2.fc43/noarch/python3-udiskie-2.5.8-2.fc43.noarch.rpm"
+    # "${KOJI_BASE}/udiskie/2.5.8/2.fc43/noarch/udiskie-2.5.8-2.fc43.noarch.rpm"
 )
 
 # --- Install Packages ---
