@@ -88,7 +88,6 @@ add_wants_niri cliphist.service
 add_wants_niri swayidle.service
 add_wants_niri udiskie.service
 add_wants_niri foot.service
-add_wants_niri xwayland-satellite.service
 cat /usr/lib/systemd/user/niri.service
 
 systemctl enable greetd
@@ -114,14 +113,12 @@ systemctl enable --global gnome-keyring-daemon.socket
 systemctl enable --global gnome-keyring-daemon.service
 systemctl enable --global swayidle.service
 systemctl enable --global udiskie.service
-systemctl enable --global xwayland-satellite.service
 systemctl preset --global chezmoi-init
 systemctl preset --global chezmoi-update
 systemctl preset --global cliphist
 systemctl preset --global swayidle
 systemctl preset --global udiskie
 systemctl preset --global foot
-systemctl preset --global xwayland-satellite
 
 git clone "https://github.com/noctalia-dev/noctalia-shell.git" /usr/share/zirconium/noctalia-shell
 cp /usr/share/zirconium/skel/Pictures/Wallpapers/mountains.png /usr/share/zirconium/noctalia-shell/Assets/Wallpaper/noctalia.png
