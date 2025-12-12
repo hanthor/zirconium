@@ -80,7 +80,7 @@ dnf -y install \
     "${KOJI_BASE}/brightnessctl/0.5.1/14.fc43/${FEDORA_ARCH}/brightnessctl-0.5.1-14.fc43.${FEDORA_ARCH}.rpm" \
     "${KOJI_BASE}/cava/0.10.2/5.fc43/${FEDORA_ARCH}/cava-0.10.2-5.fc43.${FEDORA_ARCH}.rpm" \
     "${KOJI_BASE}/foot/1.25.0/1.fc43/${FEDORA_ARCH}/foot-1.25.0-1.fc43.${FEDORA_ARCH}.rpm" \
-    "${KOJI_BASE}/glycin-thumbnailer/2.0.4/1.fc43/${FEDORA_ARCH}/glycin-thumbnailer-2.0.4-1.fc43.${FEDORA_ARCH}.rpm" \
+    "${KOJI_BASE}/glycin/2.0.4/1.fc43/${FEDORA_ARCH}/glycin-thumbnailer-2.0.4-1.fc43.${FEDORA_ARCH}.rpm" \
     "${KOJI_BASE}/tuigreet/0.9.1/4.fc43/${FEDORA_ARCH}/tuigreet-0.9.1-4.fc43.${FEDORA_ARCH}.rpm" \
     "${KOJI_BASE}/wlsunset/0.4.0/4.fc43/${FEDORA_ARCH}/wlsunset-0.4.0-4.fc43.${FEDORA_ARCH}.rpm" \
     "${KOJI_BASE}/xwayland-satellite/0.7/1.fc43/${FEDORA_ARCH}/xwayland-satellite-0.7-1.fc43.${FEDORA_ARCH}.rpm"
@@ -88,6 +88,7 @@ dnf -y install \
 # Install noarch packages from Fedora 43
 dnf -y install \
     "${KOJI_BASE}/input-remapper/2.2.0/1.fc43/noarch/input-remapper-2.2.0-1.fc43.noarch.rpm" \
+    "${KOJI_BASE}/udiskie/2.5.8/2.fc43/noarch/python3-udiskie-2.5.8-2.fc43.noarch.rpm" \
     "${KOJI_BASE}/udiskie/2.5.8/2.fc43/noarch/udiskie-2.5.8-2.fc43.noarch.rpm"
 
 dnf install -y --setopt=install_weak_deps=False \
