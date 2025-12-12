@@ -50,7 +50,6 @@ dnf -y install \
     greetd-selinux \
     input-remapper \
     just \
-    libwayland-server \
     nautilus \
     orca \
     pipewire \
