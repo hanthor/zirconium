@@ -75,6 +75,13 @@ esac
 # Base URL for Fedora 43 packages on koji
 KOJI_BASE="https://kojipkgs.fedoraproject.org//packages"
 
+# Install dependencies from Fedora 43 first
+dnf -y install \
+    "${KOJI_BASE}/iniparser/4.2.6/3.fc43/${FEDORA_ARCH}/iniparser-4.2.6-3.fc43.${FEDORA_ARCH}.rpm" \
+    "${KOJI_BASE}/fcft/3.3.2/2.fc43/${FEDORA_ARCH}/fcft-3.3.2-2.fc43.${FEDORA_ARCH}.rpm" \
+    "${KOJI_BASE}/utf8proc/2.10.0/2.fc43/${FEDORA_ARCH}/utf8proc-2.10.0-2.fc43.${FEDORA_ARCH}.rpm" \
+    "${KOJI_BASE}/glycin/2.0.4/1.fc43/${FEDORA_ARCH}/glycin-loaders-2.0.4-1.fc43.${FEDORA_ARCH}.rpm"
+
 # Install arch-specific packages from Fedora 43
 dnf -y install \
     "${KOJI_BASE}/brightnessctl/0.5.1/14.fc43/${FEDORA_ARCH}/brightnessctl-0.5.1-14.fc43.${FEDORA_ARCH}.rpm" \
