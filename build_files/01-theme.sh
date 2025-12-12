@@ -81,7 +81,6 @@ esac
 KOJI_BASE="https://kojipkgs.fedoraproject.org//packages"
 KOJI_PACKAGES=(
     "${KOJI_BASE}/highway/1.3.0/1.fc43/${FEDORA_ARCH}/highway-1.3.0-1.fc43.${FEDORA_ARCH}.rpm"
-    "${KOJI_BASE}/libjxl/0.11.1/7.fc43/${FEDORA_ARCH}/libjxl-0.11.1-7.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/iniparser/4.2.6/3.fc43/${FEDORA_ARCH}/iniparser-4.2.6-3.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/fcft/3.3.2/2.fc43/${FEDORA_ARCH}/fcft-3.3.2-2.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/utf8proc/2.10.0/2.fc43/${FEDORA_ARCH}/utf8proc-2.10.0-2.fc43.${FEDORA_ARCH}.rpm"
