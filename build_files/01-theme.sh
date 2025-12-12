@@ -56,12 +56,12 @@ STANDARD_PACKAGES=(
     xdg-desktop-portal-gnome
     xdg-desktop-portal-gtk
     xdg-user-dirs
-    # KDE/Qt components
-    kf6-kirigami
-    qt6ct
-    polkit-kde
-    plasma-breeze
-    kf6-qqc2-desktop-style
+    # KDE/Qt components - Commented out due to conflict with quickshell-git (Qt 6.10) vs EPEL (Qt 6.9)
+    # kf6-kirigami
+    # qt6ct
+    # polkit-kde
+    # plasma-breeze
+    # kf6-qqc2-desktop-style
     # Fonts & Emoji
     default-fonts-core-emoji
     google-noto-color-emoji-fonts
