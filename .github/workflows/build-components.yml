@@ -99,22 +99,22 @@ jobs:
           # but we continue with other components due to continue-on-error
           if ! podman manifest create "${IMAGE_NAME}:latest"; then
             echo "Failed to create manifest for ${{ matrix.component }}"
-            exit 0
+            exit 1
           fi
           
           if ! podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64"; then
             echo "Failed to add amd64 image for ${{ matrix.component }}"
-            exit 0
+            exit 1
           fi
           
           if ! podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64"; then
             echo "Failed to add arm64 image for ${{ matrix.component }}"
-            exit 0
+            exit 1
           fi
           
           if ! podman manifest push "${IMAGE_NAME}:latest"; then
             echo "Failed to push manifest for ${{ matrix.component }}"
-            exit 0
+            exit 1
           fi
           
           echo "Successfully created and pushed manifest for ${{ matrix.component }}"
