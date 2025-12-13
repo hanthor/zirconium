@@ -100,4 +100,4 @@ jobs:
           podman manifest create "${IMAGE_NAME}:latest" || exit 0
           podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" || exit 0
           podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" || exit 0
-          podman manifest push "${IMAGE_NAME}:latest"
+          podman manifest push "${IMAGE_NAME}:latest" || exit 0
