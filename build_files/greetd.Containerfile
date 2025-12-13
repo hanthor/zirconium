@@ -11,7 +11,9 @@ RUN dnf -y install epel-release && \
 
 
 WORKDIR /build
-RUN git clone https://git.sr.ht/~kennylevinsen/greetd .
+# renovate: datasource=git-refs depName=greetd packageName=https://git.sr.ht/~kennylevinsen/greetd versioning=loose
+RUN git clone https://git.sr.ht/~kennylevinsen/greetd . && \
+    git checkout 51c1f332a09eb4acc8e66655df558f25a8dc62d3
 RUN cargo build --release
 
 # Create PAM file

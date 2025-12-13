@@ -19,7 +19,63 @@ env:
   OWNER: ${{ github.repository_owner }}
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    # Run change detection only for PR/push events, not for schedule/manual
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      niri: ${{ steps.filter.outputs.niri }}
+      dms: ${{ steps.filter.outputs.dms }}
+      dgop: ${{ steps.filter.outputs.dgop }}
+      cliphist: ${{ steps.filter.outputs.cliphist }}
+      matugen: ${{ steps.filter.outputs.matugen }}
+      wlsunset: ${{ steps.filter.outputs.wlsunset }}
+      glycin: ${{ steps.filter.outputs.glycin }}
+      libjxl: ${{ steps.filter.outputs.libjxl }}
+      quickshell: ${{ steps.filter.outputs.quickshell }}
+      tuigreet: ${{ steps.filter.outputs.tuigreet }}
+      xwayland-satellite: ${{ steps.filter.outputs.xwayland-satellite }}
+      greetd: ${{ steps.filter.outputs.greetd }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed components
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            niri:
+              - 'build_files/niri.Containerfile'
+            dms:
+              - 'build_files/dms.Containerfile'
+            dgop:
+              - 'build_files/dgop.Containerfile'
+            cliphist:
+              - 'build_files/cliphist.Containerfile'
+            matugen:
+              - 'build_files/matugen.Containerfile'
+            wlsunset:
+              - 'build_files/wlsunset.Containerfile'
+            glycin:
+              - 'build_files/glycin.Containerfile'
+            libjxl:
+              - 'build_files/libjxl.Containerfile'
+            quickshell:
+              - 'build_files/quickshell.Containerfile'
+            tuigreet:
+              - 'build_files/tuigreet.Containerfile'
+            xwayland-satellite:
+              - 'build_files/xwayland-satellite.Containerfile'
+            greetd:
+              - 'build_files/greetd.Containerfile'
+
   build-components:
+    needs: [detect-changes]
+    if: always()
     runs-on: ${{ matrix.platform == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     permissions:
       contents: read
@@ -42,10 +98,33 @@ jobs:
           - xwayland-satellite
           - greetd
     steps:
+      - name: Check if component should be built
+        id: should-build
+        run: |
+          # For schedule/manual runs, build all components
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "build=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # For PR/push, only build if this component changed
+          COMPONENT="${{ matrix.component }}"
+          CHANGED="${{ needs.detect-changes.outputs[matrix.component] }}"
+          
+          if [[ "${CHANGED}" == "true" ]]; then
+            echo "Component ${COMPONENT} has changes, will build"
+            echo "build=true" >> $GITHUB_OUTPUT
+          else
+            echo "Component ${COMPONENT} has no changes, skipping"
+            echo "build=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout
+        if: steps.should-build.outputs.build == 'true'
         uses: actions/checkout@v4
 
       - name: Build Image
+        if: steps.should-build.outputs.build == 'true'
         id: build
         run: |
           IMAGE_NAME="${REGISTRY}/${OWNER}/${{ matrix.component }}"
@@ -56,68 +135,252 @@ jobs:
           echo "image=${IMAGE_NAME}" >> $GITHUB_OUTPUT
 
       - name: Login to Registry
-        if: github.event_name != 'pull_request'
+        if: steps.should-build.outputs.build == 'true' && github.event_name != 'pull_request'
         run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
 
       - name: Push Image
-        if: github.event_name != 'pull_request'
+        if: steps.should-build.outputs.build == 'true' && github.event_name != 'pull_request'
         run: |
           podman push "${{ steps.build.outputs.image }}:latest-${{ matrix.platform }}"
 
-  manifest:
+  # Individual manifest jobs for each component
+  # These run as soon as both platform builds complete for that component
+  manifest-niri:
     needs: build-components
     runs-on: ubuntu-latest
     if: always() && github.event_name != 'pull_request'
     permissions:
       packages: write
-    strategy:
-      fail-fast: false
-      matrix:
-        component:
-          - niri
-          - dms
-          - dgop
-          - cliphist
-          - matugen
-          - wlsunset
-          - glycin
-          - libjxl
-          - quickshell
-          - tuigreet
-          - xwayland-satellite
-          - greetd
     steps:
       - name: Login to Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
-
       - name: Create and Push Manifest
         continue-on-error: true
         run: |
-          IMAGE_NAME="${REGISTRY}/${OWNER}/${{ matrix.component }}"
-          
-          # Remove existing manifest if it exists to ensure clean state
+          IMAGE_NAME="${REGISTRY}/${OWNER}/niri"
           podman manifest rm "${IMAGE_NAME}:latest" 2>/dev/null || true
-          
-          # Try to create the manifest - this will fail if either architecture image is missing
-          # but we continue with other components due to continue-on-error
-          if ! podman manifest create "${IMAGE_NAME}:latest"; then
-            echo "Failed to create manifest for ${{ matrix.component }}"
-            exit 1
-          fi
-          
-          if ! podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64"; then
-            echo "Failed to add amd64 image for ${{ matrix.component }}"
-            exit 1
-          fi
-          
-          if ! podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64"; then
-            echo "Failed to add arm64 image for ${{ matrix.component }}"
-            exit 1
-          fi
-          
-          if ! podman manifest push "${IMAGE_NAME}:latest"; then
-            echo "Failed to push manifest for ${{ matrix.component }}"
-            exit 1
-          fi
-          
-          echo "Successfully created and pushed manifest for ${{ matrix.component }}"
+          podman manifest create "${IMAGE_NAME}:latest" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" && \
+          podman manifest push "${IMAGE_NAME}:latest" && \
+          echo "Successfully created and pushed manifest for niri"
+
+  manifest-dms:
+    needs: build-components
+    runs-on: ubuntu-latest
+    if: always() && github.event_name != 'pull_request'
+    permissions:
+      packages: write
+    steps:
+      - name: Login to Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
+      - name: Create and Push Manifest
+        continue-on-error: true
+        run: |
+          IMAGE_NAME="${REGISTRY}/${OWNER}/dms"
+          podman manifest rm "${IMAGE_NAME}:latest" 2>/dev/null || true
+          podman manifest create "${IMAGE_NAME}:latest" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" && \
+          podman manifest push "${IMAGE_NAME}:latest" && \
+          echo "Successfully created and pushed manifest for dms"
+
+  manifest-dgop:
+    needs: build-components
+    runs-on: ubuntu-latest
+    if: always() && github.event_name != 'pull_request'
+    permissions:
+      packages: write
+    steps:
+      - name: Login to Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
+      - name: Create and Push Manifest
+        continue-on-error: true
+        run: |
+          IMAGE_NAME="${REGISTRY}/${OWNER}/dgop"
+          podman manifest rm "${IMAGE_NAME}:latest" 2>/dev/null || true
+          podman manifest create "${IMAGE_NAME}:latest" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" && \
+          podman manifest push "${IMAGE_NAME}:latest" && \
+          echo "Successfully created and pushed manifest for dgop"
+
+  manifest-cliphist:
+    needs: build-components
+    runs-on: ubuntu-latest
+    if: always() && github.event_name != 'pull_request'
+    permissions:
+      packages: write
+    steps:
+      - name: Login to Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
+      - name: Create and Push Manifest
+        continue-on-error: true
+        run: |
+          IMAGE_NAME="${REGISTRY}/${OWNER}/cliphist"
+          podman manifest rm "${IMAGE_NAME}:latest" 2>/dev/null || true
+          podman manifest create "${IMAGE_NAME}:latest" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" && \
+          podman manifest push "${IMAGE_NAME}:latest" && \
+          echo "Successfully created and pushed manifest for cliphist"
+
+  manifest-matugen:
+    needs: build-components
+    runs-on: ubuntu-latest
+    if: always() && github.event_name != 'pull_request'
+    permissions:
+      packages: write
+    steps:
+      - name: Login to Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
+      - name: Create and Push Manifest
+        continue-on-error: true
+        run: |
+          IMAGE_NAME="${REGISTRY}/${OWNER}/matugen"
+          podman manifest rm "${IMAGE_NAME}:latest" 2>/dev/null || true
+          podman manifest create "${IMAGE_NAME}:latest" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" && \
+          podman manifest push "${IMAGE_NAME}:latest" && \
+          echo "Successfully created and pushed manifest for matugen"
+
+  manifest-wlsunset:
+    needs: build-components
+    runs-on: ubuntu-latest
+    if: always() && github.event_name != 'pull_request'
+    permissions:
+      packages: write
+    steps:
+      - name: Login to Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
+      - name: Create and Push Manifest
+        continue-on-error: true
+        run: |
+          IMAGE_NAME="${REGISTRY}/${OWNER}/wlsunset"
+          podman manifest rm "${IMAGE_NAME}:latest" 2>/dev/null || true
+          podman manifest create "${IMAGE_NAME}:latest" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" && \
+          podman manifest push "${IMAGE_NAME}:latest" && \
+          echo "Successfully created and pushed manifest for wlsunset"
+
+  manifest-glycin:
+    needs: build-components
+    runs-on: ubuntu-latest
+    if: always() && github.event_name != 'pull_request'
+    permissions:
+      packages: write
+    steps:
+      - name: Login to Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
+      - name: Create and Push Manifest
+        continue-on-error: true
+        run: |
+          IMAGE_NAME="${REGISTRY}/${OWNER}/glycin"
+          podman manifest rm "${IMAGE_NAME}:latest" 2>/dev/null || true
+          podman manifest create "${IMAGE_NAME}:latest" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" && \
+          podman manifest push "${IMAGE_NAME}:latest" && \
+          echo "Successfully created and pushed manifest for glycin"
+
+  manifest-libjxl:
+    needs: build-components
+    runs-on: ubuntu-latest
+    if: always() && github.event_name != 'pull_request'
+    permissions:
+      packages: write
+    steps:
+      - name: Login to Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
+      - name: Create and Push Manifest
+        continue-on-error: true
+        run: |
+          IMAGE_NAME="${REGISTRY}/${OWNER}/libjxl"
+          podman manifest rm "${IMAGE_NAME}:latest" 2>/dev/null || true
+          podman manifest create "${IMAGE_NAME}:latest" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" && \
+          podman manifest push "${IMAGE_NAME}:latest" && \
+          echo "Successfully created and pushed manifest for libjxl"
+
+  manifest-quickshell:
+    needs: build-components
+    runs-on: ubuntu-latest
+    if: always() && github.event_name != 'pull_request'
+    permissions:
+      packages: write
+    steps:
+      - name: Login to Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
+      - name: Create and Push Manifest
+        continue-on-error: true
+        run: |
+          IMAGE_NAME="${REGISTRY}/${OWNER}/quickshell"
+          podman manifest rm "${IMAGE_NAME}:latest" 2>/dev/null || true
+          podman manifest create "${IMAGE_NAME}:latest" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" && \
+          podman manifest push "${IMAGE_NAME}:latest" && \
+          echo "Successfully created and pushed manifest for quickshell"
+
+  manifest-tuigreet:
+    needs: build-components
+    runs-on: ubuntu-latest
+    if: always() && github.event_name != 'pull_request'
+    permissions:
+      packages: write
+    steps:
+      - name: Login to Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
+      - name: Create and Push Manifest
+        continue-on-error: true
+        run: |
+          IMAGE_NAME="${REGISTRY}/${OWNER}/tuigreet"
+          podman manifest rm "${IMAGE_NAME}:latest" 2>/dev/null || true
+          podman manifest create "${IMAGE_NAME}:latest" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" && \
+          podman manifest push "${IMAGE_NAME}:latest" && \
+          echo "Successfully created and pushed manifest for tuigreet"
+
+  manifest-xwayland-satellite:
+    needs: build-components
+    runs-on: ubuntu-latest
+    if: always() && github.event_name != 'pull_request'
+    permissions:
+      packages: write
+    steps:
+      - name: Login to Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
+      - name: Create and Push Manifest
+        continue-on-error: true
+        run: |
+          IMAGE_NAME="${REGISTRY}/${OWNER}/xwayland-satellite"
+          podman manifest rm "${IMAGE_NAME}:latest" 2>/dev/null || true
+          podman manifest create "${IMAGE_NAME}:latest" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" && \
+          podman manifest push "${IMAGE_NAME}:latest" && \
+          echo "Successfully created and pushed manifest for xwayland-satellite"
+
+  manifest-greetd:
+    needs: build-components
+    runs-on: ubuntu-latest
+    if: always() && github.event_name != 'pull_request'
+    permissions:
+      packages: write
+    steps:
+      - name: Login to Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
+      - name: Create and Push Manifest
+        continue-on-error: true
+        run: |
+          IMAGE_NAME="${REGISTRY}/${OWNER}/greetd"
+          podman manifest rm "${IMAGE_NAME}:latest" 2>/dev/null || true
+          podman manifest create "${IMAGE_NAME}:latest" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" && \
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" && \
+          podman manifest push "${IMAGE_NAME}:latest" && \
+          echo "Successfully created and pushed manifest for greetd"

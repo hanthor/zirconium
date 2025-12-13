@@ -8,7 +8,9 @@ RUN dnf -y install \
 
 WORKDIR /build
 
-RUN git clone https://github.com/Hummer12007/brightnessctl.git .
+# renovate: datasource=git-refs depName=brightnessctl packageName=https://github.com/Hummer12007/brightnessctl.git versioning=loose
+RUN git clone https://github.com/Hummer12007/brightnessctl.git . && \
+    git checkout e70bc55cf053caa285695ac77507e009b5508ee3
 
 RUN ./configure --prefix=/usr
 RUN make

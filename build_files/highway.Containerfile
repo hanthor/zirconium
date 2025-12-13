@@ -8,7 +8,9 @@ RUN dnf -y install \
 
 WORKDIR /build
 
-RUN git clone https://github.com/google/highway.git .
+# renovate: datasource=git-refs depName=highway packageName=https://github.com/google/highway.git versioning=loose
+RUN git clone https://github.com/google/highway.git . && \
+    git checkout ff79fff5970e66526e37cfe9b920c2694dfb0f63
 
 RUN cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DHWY_ENABLE_EXAMPLES=OFF -DHWY_ENABLE_TESTS=OFF
 RUN cmake --build build

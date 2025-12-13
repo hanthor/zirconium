@@ -11,8 +11,9 @@ RUN dnf -y install epel-release && \
 
 WORKDIR /build
 
-# clone tuigreet
-RUN git clone https://github.com/apognu/tuigreet.git .
+# renovate: datasource=git-refs depName=tuigreet packageName=https://github.com/apognu/tuigreet.git versioning=loose
+RUN git clone https://github.com/apognu/tuigreet.git . && \
+    git checkout 2aeca1b63dec977fc4e2ac6f97432386bedbc546
 
 # Build tuigreet
 RUN cargo build --release

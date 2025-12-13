@@ -14,8 +14,9 @@ RUN dnf -y install epel-release && \
 
 WORKDIR /build
 
-# clone xwayland-satellite
-RUN git clone https://github.com/Supreeeme/xwayland-satellite.git .
+# renovate: datasource=git-refs depName=xwayland-satellite packageName=https://github.com/Supreeeme/xwayland-satellite.git versioning=loose
+RUN git clone https://github.com/Supreeeme/xwayland-satellite.git . && \
+    git checkout f0ad674b7009a6afd80cea59d4fbf975dd68ee95
 
 # Build xwayland-satellite
 RUN cargo build --release

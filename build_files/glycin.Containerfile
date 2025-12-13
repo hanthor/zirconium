@@ -20,7 +20,9 @@ RUN dnf -y install epel-release && \
 
 WORKDIR /build
 
-RUN git clone https://gitlab.gnome.org/GNOME/glycin.git .
+# renovate: datasource=git-refs depName=glycin packageName=https://gitlab.gnome.org/GNOME/glycin.git versioning=loose
+RUN git clone https://gitlab.gnome.org/GNOME/glycin.git . && \
+    git checkout 0865d33a7870a1cb8bf35c89f75d2cfab4129ee8
 
 RUN meson setup build --prefix=/usr -Dloaders=glycin-heif,glycin-image-rs,glycin-svg && ninja -C build
 RUN DESTDIR=/install ninja -C build install

@@ -8,7 +8,9 @@ RUN dnf -y install \
 
 WORKDIR /build
 
-RUN git clone https://github.com/AvengeMedia/DankMaterialShell.git .
+# renovate: datasource=git-refs depName=dms packageName=https://github.com/AvengeMedia/DankMaterialShell.git versioning=loose
+RUN git clone https://github.com/AvengeMedia/DankMaterialShell.git . && \
+    git checkout e4e20fb43a4627ab6d1581b14d6f7b5dab7d0820
 
 # Build Core CLI
 WORKDIR /build/core

@@ -25,7 +25,9 @@ RUN dnf -y install epel-release && \
 
 WORKDIR /build
 
-RUN git clone https://github.com/karlstav/cava.git .
+# renovate: datasource=git-refs depName=cava packageName=https://github.com/karlstav/cava.git versioning=loose
+RUN git clone https://github.com/karlstav/cava.git . && \
+    git checkout 4915465a38278f452449956d969913f809d51473
 
 RUN ./autogen.sh
 RUN ./configure --prefix=/usr
