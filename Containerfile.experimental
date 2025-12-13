@@ -35,7 +35,7 @@ RUN dnf -y install epel-release && \
     libxkbcommon-devel check-devel fftw-devel ncurses-devel \
     pulseaudio-libs-devel pipewire-devel alsa-lib-devel SDL2-devel iniparser-devel \
     cli11-devel qt6-qtbase-devel qt6-qtbase-private-devel qt6-qtdeclarative-devel \
-    qt6-qtwayland-devel qt6-qtshadertools-devel libdrm-devel polkit-devel \
+    qt6-qtwayland-devel qt6-qtshadertools-devel libdrm-devel mesa-libgbm-devel polkit-devel \
     jemalloc-devel pam-devel spirv-tools
 
 # -----------------------------------------------------------------------------
@@ -256,6 +256,7 @@ WORKDIR /build
 # Cava usually bundles iniparser logic or needs it. We installed iniparser-devel.
 RUN git clone https://github.com/karlstav/cava.git .
 RUN ./autogen.sh && ./configure --prefix=/usr
+RUN mkdir -p input/.deps output/.deps
 RUN make
 RUN make install DESTDIR=/install
 

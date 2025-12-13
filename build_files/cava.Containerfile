@@ -29,6 +29,7 @@ RUN git clone https://github.com/karlstav/cava.git .
 
 RUN ./autogen.sh
 RUN ./configure --prefix=/usr
+RUN mkdir -p input/.deps output/.deps
 RUN make
 RUN make install DESTDIR=/install
 
