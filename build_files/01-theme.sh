@@ -30,8 +30,7 @@ dnf -y \
 dnf -y copr enable zirconium/packages
 dnf -y copr disable zirconium/packages
 dnf -y --enablerepo copr:copr.fedorainfracloud.org:zirconium:packages install \
-    matugen \
-    cliphist
+    matugen
 
 dnf -y install \
     brightnessctl \
@@ -85,8 +84,6 @@ dnf -y install --enablerepo=fedora-multimedia \
 add_wants_niri() {
     sed -i "s/\[Unit\]/\[Unit\]\nWants=$1/" "/usr/lib/systemd/user/niri.service"
 }
-add_wants_niri cliphist.service
-add_wants_niri swayidle.service
 add_wants_niri udiskie.service
 add_wants_niri foot.service
 cat /usr/lib/systemd/user/niri.service
@@ -110,14 +107,12 @@ systemctl enable --global foot.service
 systemctl enable --global chezmoi-update.timer
 systemctl enable --global dms.service
 systemctl enable --global dsearch.service
-systemctl enable --global cliphist.service
 systemctl enable --global gnome-keyring-daemon.socket
 systemctl enable --global gnome-keyring-daemon.service
 systemctl enable --global swayidle.service
 systemctl enable --global udiskie.service
 systemctl preset --global chezmoi-init
 systemctl preset --global chezmoi-update
-systemctl preset --global cliphist
 systemctl preset --global swayidle
 systemctl preset --global udiskie
 systemctl preset --global foot

@@ -46,8 +46,6 @@ switch-to-dms:
     systemctl mask --now --user noctalia.service
     systemctl unmask --user dms.service
     systemctl enable --now --user dms.service
-    systemctl unmask --user cliphist.service
-    systemctl enable --now --user cliphist.service
     systemctl disable --now --user swayidle.service
 
 switch-to-noctalia:
@@ -55,7 +53,6 @@ switch-to-noctalia:
     sed -i "s@include \"dms.kdl\"@\/\/ include \"dms.kdl\"@" $HOME/.config/niri/config.kdl
     sed -i "s@\/\/ include \"noctalia.kdl\"@include \"noctalia.kdl\"@" $HOME/.config/niri/config.kdl
     systemctl mask --now --user dms.service
-    systemctl mask --now --user cliphist.service
     systemctl unmask --user noctalia.service
     systemctl enable --now --user noctalia.service
     systemctl enable --now --user swayidle.service

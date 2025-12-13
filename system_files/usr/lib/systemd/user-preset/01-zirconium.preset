@@ -1,5 +1,4 @@
 enable dms.service
-enable cliphist.service
 enable chezmoi-init.service
 enable chezmoi-update.timer
 enable foot.service
