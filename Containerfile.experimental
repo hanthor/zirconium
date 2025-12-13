@@ -269,6 +269,8 @@ ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
 
 # Copy artifacts from builders
 COPY --from=niri-builder /build/target/release/niri /usr/bin/niri
+COPY --from=niri-builder /build/resources/niri.service /usr/lib/systemd/user/niri.service
+COPY --from=niri-builder /build/resources/niri-session /usr/bin/niri-session
 
 # dms
 COPY --from=dms-builder /build/core/dms /usr/bin/dms

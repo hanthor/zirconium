@@ -36,3 +36,5 @@ RUN cargo build --release
 # Copy artifacts to a clean layer
 FROM scratch
 COPY --from=builder /build/target/release/niri /usr/bin/niri
+COPY --from=builder /build/resources/niri.service /usr/lib/systemd/user/niri.service
+COPY --from=builder /build/resources/niri-session /usr/bin/niri-session
