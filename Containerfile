@@ -1,5 +1,5 @@
 ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
-ARG REPOSITORY="${REPOSITORY:-ghcr.io/zirconium-dev}"
+ARG REPOSITORY="${REPOSITORY:-ghcr.io/hanthor}"
 
 FROM scratch AS ctx
 
