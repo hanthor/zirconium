@@ -15,7 +15,9 @@ RUN dnf -y install epel-release && \
 
 WORKDIR /build
 
-RUN git clone --recursive https://github.com/libjxl/libjxl.git .
+# renovate: datasource=git-refs depName=libjxl packageName=https://github.com/libjxl/libjxl.git versioning=loose
+RUN git clone --recursive https://github.com/libjxl/libjxl.git . && \
+    git checkout 53042ec537712e0df08709524f4df097d42174bc
 
 RUN cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
 RUN cmake --build build --config Release

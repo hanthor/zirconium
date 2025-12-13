@@ -26,7 +26,9 @@ RUN dnf -y install epel-release && \
 WORKDIR /build
 
 # clone niri
-RUN git clone https://github.com/YaLTeR/niri.git .
+# renovate: datasource=git-refs depName=niri packageName=https://github.com/YaLTeR/niri.git versioning=loose
+RUN git clone https://github.com/YaLTeR/niri.git . && \
+    git checkout d1fc1ab731f7cc59923a16acce9a387782bfeb10
 
 # Build niri
 RUN cargo build --release

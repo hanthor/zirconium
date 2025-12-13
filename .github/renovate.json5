@@ -6,6 +6,16 @@
 
   "rebaseWhen": "never",
 
+  "regexManagers": [
+    {
+      "fileMatch": ["^build_files/.*\\.Containerfile$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s+RUN git clone (?<registryUrl>.*?) .*?(?:--branch (?<currentValue>.*?)|-b (?<currentValue>.*?))? --depth",
+        "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s+RUN git clone (?<registryUrl>.*?) .*?(?:--branch (?<currentValue>.*?)|-b (?<currentValue>.*?))? \\."
+      ]
+    }
+  ],
+
   "packageRules": [
     {
       "automerge": true,
@@ -17,5 +27,13 @@
       "matchDepTypes": ["container"],
       "matchFileNames": [".github/workflows/**.yaml", ".github/workflows/**.yml"],
     },
+    {
+      "matchManagers": ["regex"],
+      "matchFileNames": ["build_files/**"],
+      "addLabels": ["component-update"],
+      "commitMessageTopic": "component {{depName}}",
+      "commitMessageExtra": "to {{newValue}}",
+      "semanticCommitType": "build"
+    }
   ]
 }

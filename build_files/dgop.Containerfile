@@ -7,7 +7,9 @@ RUN dnf -y install \
 
 WORKDIR /build
 
-RUN git clone https://github.com/AvengeMedia/dgop.git .
+# renovate: datasource=git-refs depName=dgop packageName=https://github.com/AvengeMedia/dgop.git versioning=loose
+RUN git clone https://github.com/AvengeMedia/dgop.git . && \
+    git checkout 57279532bc932b93df79d866b0663b1753cefda1
 RUN go build -o dgop ./cmd/cli
 
 FROM scratch

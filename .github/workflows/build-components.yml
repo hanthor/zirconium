@@ -19,7 +19,77 @@ env:
   OWNER: ${{ github.repository_owner }}
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    # Run change detection only for PR/push events, not for schedule/manual
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    outputs:
+      niri: ${{ steps.filter.outputs.niri }}
+      dms: ${{ steps.filter.outputs.dms }}
+      dgop: ${{ steps.filter.outputs.dgop }}
+      cliphist: ${{ steps.filter.outputs.cliphist }}
+      matugen: ${{ steps.filter.outputs.matugen }}
+      wlsunset: ${{ steps.filter.outputs.wlsunset }}
+      glycin: ${{ steps.filter.outputs.glycin }}
+      libjxl: ${{ steps.filter.outputs.libjxl }}
+      quickshell: ${{ steps.filter.outputs.quickshell }}
+      tuigreet: ${{ steps.filter.outputs.tuigreet }}
+      xwayland-satellite: ${{ steps.filter.outputs.xwayland-satellite }}
+      greetd: ${{ steps.filter.outputs.greetd }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed components
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            niri:
+              - 'build_files/niri.Containerfile'
+            dms:
+              - 'build_files/dms.Containerfile'
+            dgop:
+              - 'build_files/dgop.Containerfile'
+            cliphist:
+              - 'build_files/cliphist.Containerfile'
+            matugen:
+              - 'build_files/matugen.Containerfile'
+            wlsunset:
+              - 'build_files/wlsunset.Containerfile'
+            glycin:
+              - 'build_files/glycin.Containerfile'
+            libjxl:
+              - 'build_files/libjxl.Containerfile'
+            quickshell:
+              - 'build_files/quickshell.Containerfile'
+            tuigreet:
+              - 'build_files/tuigreet.Containerfile'
+            xwayland-satellite:
+              - 'build_files/xwayland-satellite.Containerfile'
+            greetd:
+              - 'build_files/greetd.Containerfile'
+
   build-components:
+    needs: [detect-changes]
+    # Skip this job if detect-changes was skipped (schedule/manual) OR if it ran but nothing changed for this component
+    if: |
+      always() &&
+      (needs.detect-changes.result == 'skipped' ||
+       (github.event_name == 'pull_request' || github.event_name == 'push') && (
+         needs.detect-changes.outputs.niri == 'true' ||
+         needs.detect-changes.outputs.dms == 'true' ||
+         needs.detect-changes.outputs.dgop == 'true' ||
+         needs.detect-changes.outputs.cliphist == 'true' ||
+         needs.detect-changes.outputs.matugen == 'true' ||
+         needs.detect-changes.outputs.wlsunset == 'true' ||
+         needs.detect-changes.outputs.glycin == 'true' ||
+         needs.detect-changes.outputs.libjxl == 'true' ||
+         needs.detect-changes.outputs.quickshell == 'true' ||
+         needs.detect-changes.outputs.tuigreet == 'true' ||
+         needs.detect-changes.outputs['xwayland-satellite'] == 'true' ||
+         needs.detect-changes.outputs.greetd == 'true'
+       ))
     runs-on: ${{ matrix.platform == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     permissions:
       contents: read
@@ -42,10 +112,33 @@ jobs:
           - xwayland-satellite
           - greetd
     steps:
+      - name: Check if component should be built
+        id: should-build
+        run: |
+          # For schedule/manual runs, build all components
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "build=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # For PR/push, only build if this component changed
+          COMPONENT="${{ matrix.component }}"
+          CHANGED="${{ needs.detect-changes.outputs[matrix.component] }}"
+          
+          if [[ "${CHANGED}" == "true" ]]; then
+            echo "Component ${COMPONENT} has changes, will build"
+            echo "build=true" >> $GITHUB_OUTPUT
+          else
+            echo "Component ${COMPONENT} has no changes, skipping"
+            echo "build=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout
+        if: steps.should-build.outputs.build == 'true'
         uses: actions/checkout@v4
 
       - name: Build Image
+        if: steps.should-build.outputs.build == 'true'
         id: build
         run: |
           IMAGE_NAME="${REGISTRY}/${OWNER}/${{ matrix.component }}"
@@ -56,11 +149,11 @@ jobs:
           echo "image=${IMAGE_NAME}" >> $GITHUB_OUTPUT
 
       - name: Login to Registry
-        if: github.event_name != 'pull_request'
+        if: steps.should-build.outputs.build == 'true' && github.event_name != 'pull_request'
         run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
 
       - name: Push Image
-        if: github.event_name != 'pull_request'
+        if: steps.should-build.outputs.build == 'true' && github.event_name != 'pull_request'
         run: |
           podman push "${{ steps.build.outputs.image }}:latest-${{ matrix.platform }}"
 
