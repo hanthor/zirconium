@@ -129,11 +129,6 @@ session    include      system-auth
 session    optional     pam_gnome_keyring.so auto_start
 EOF
 
-# Multimedia
-dnf config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-multimedia.repo
-dnf config-manager setopt fedora-multimedia.enabled=0
-dnf -y install --enablerepo=fedora-multimedia \
-    ffmpeg libavcodec @multimedia gstreamer1-plugins-{bad-free,bad-free-libs,good,base} lame{,-libs} ffmpegthumbnailer
 
 # Systemd Niri Wants
 NIRI_SERVICES=(
