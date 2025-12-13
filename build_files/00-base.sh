@@ -21,7 +21,7 @@ dnf -y install --enablerepo=epel-multimedia \
     ffmpeg libavcodec @multimedia gstreamer1-plugins-{bad-free,bad-free-libs,good,base} lame{,-libs} libjxl ffmpegthumbnailer
 
 # Tailscale
-dnf config-manager --add-repo "https://pkgs.tailscale.com/stable/centos/${MAJOR_VERSION_NUMBER}/tailscale.repo"
+dnf config-manager --add-repo "https://pkgs.tailscale.com/stable/centos/10/tailscale.repo"
 dnf config-manager --set-disabled "tailscale-stable"
 # FIXME: tailscale EPEL10 request: https://bugzilla.redhat.com/show_bug.cgi?id=2349099
 dnf -y --enablerepo "tailscale-stable" install \
