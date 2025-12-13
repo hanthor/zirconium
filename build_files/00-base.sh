@@ -27,8 +27,6 @@ dnf config-manager --set-disabled "tailscale-stable"
 dnf -y --enablerepo "tailscale-stable" install \
         tailscale
 
-systemctl enable tailscaled
-
 dnf install -y \
   alsa-firmware \
   alsa-sof-firmware \

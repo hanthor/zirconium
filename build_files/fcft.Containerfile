@@ -33,9 +33,9 @@ RUN git clone https://github.com/JuliaStrings/utf8proc.git && \
     cmake --install build
 
 # Build fcft
-RUN git clone https://codeberg.org/dnkl/fcft.git .
-RUN meson setup build --prefix=/usr -Ddocs=disabled && ninja -C build
-RUN DESTDIR=/install ninja -C build install
+RUN git clone https://codeberg.org/dnkl/fcft.git fcft
+RUN cd fcft && meson setup build --prefix=/usr -Ddocs=disabled && ninja -C build
+RUN cd fcft && DESTDIR=/install ninja -C build install
 
 FROM scratch
 COPY --from=builder /install /
