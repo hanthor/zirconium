@@ -19,4 +19,4 @@ FROM scratch
 COPY --from=builder /build/core/dms /usr/bin/dms
 # Copy the shell and greeter assets
 COPY --from=builder /build/quickshell /usr/share/dms/shell
-COPY --from=builder /build/greeter /usr/share/dms/greeter
+COPY --from=builder /build/quickshell/Modules/Greetd /usr/share/dms/greeter

@@ -1,7 +1,8 @@
 FROM quay.io/centos/centos:stream10 AS builder
 
 # Install build dependencies
-RUN dnf -y install \
+RUN dnf -y install epel-release && \
+    dnf -y --enablerepo=crb install \
     cargo \
     rust \
     clang \
@@ -13,8 +14,11 @@ RUN dnf -y install \
     libxkbcommon-devel \
     pango-devel \
     cairo-devel \
+    cairo-gobject-devel \
     glib2-devel \
-    seatd-devel \
+    libseat-devel \
+    libdisplay-info-devel \
+    pipewire-devel \
     libinput-devel \
     libgudev-devel \
     pkgconf

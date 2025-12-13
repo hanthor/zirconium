@@ -1,6 +1,7 @@
 FROM quay.io/centos/centos:stream10 AS builder
 
-RUN dnf -y install \
+RUN dnf -y install epel-release && \
+    dnf -y --enablerepo=crb install \
     git \
     meson \
     ninja-build \
