@@ -135,11 +135,16 @@ cp -f /usr/share/zirconium/pixmaps/watermark.png /usr/share/plymouth/themes/spin
 mkdir -p "/usr/share/fonts/Maple Mono"
 
 MAPLE_TMPDIR="$(mktemp -d)"
-trap 'rm -rf "${MAPLE_TMPDIR}"' EXIT
-
 LATEST_RELEASE_FONT="$(curl "https://api.github.com/repos/subframe7536/maple-font/releases/latest" | jq '.assets[] | select(.name == "MapleMono-Variable.zip") | .browser_download_url' -rc)"
 curl -fSsLo "${MAPLE_TMPDIR}/maple.zip" "${LATEST_RELEASE_FONT}"
 unzip "${MAPLE_TMPDIR}/maple.zip" -d "/usr/share/fonts/Maple Mono"
+rm -rf "${MAPLE_TMPDIR}"
+
+MAPLE_NF_TMPDIR="$(mktemp -d)"
+LATEST_RELEASE_FONT="$(curl "https://api.github.com/repos/subframe7536/maple-font/releases/latest" | jq '.assets[] | select(.name == "MapleMono-NF.zip") | .browser_download_url' -rc)"
+curl -fSsLo "${MAPLE_NF_TMPDIR}/maple.zip" "${LATEST_RELEASE_FONT}"
+unzip "${MAPLE_NF_TMPDIR}/maple.zip" -d "/usr/share/fonts/Maple Mono NF"
+rm -rf "${MAPLE_NF_TMPDIR}"
 
 fc-cache --force --really-force --system-only --verbose # recreate font-cache to pick up the added fonts
 
