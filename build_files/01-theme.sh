@@ -4,32 +4,14 @@ set -xeuo pipefail
 
 install -d /usr/share/zirconium/
 
-# --- COPR Helper ---
-enable_copr() {
-    dnf -y copr enable "$1"
-    dnf -y copr disable "$1"
-}
-
 # --- Setup Repositories ---
-# enable_copr "yalter/niri-git"
+# enable niri-git COPR
 echo "priority=1" | tee -a /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:yalter:niri-git.repo
 
-# enable_copr "jreilly1821/danklinux"
-enable_copr "yselkowitz/cosmic-epel"
+# enable cosmic-epel COPR
+dnf -y copr enable "yselkowitz/cosmic-epel"
 
 # --- Define Package Groups ---
-
-# COPR Packages
-COPR_PACKAGES=(
-    # niri - OCI
-    # quickshell-git - OCI
-    # dms - OCI
-    # dms-cli - OCI
-    # dms-greeter - OCI
-    # dgop - OCI
-    # matugen - OCI
-    # cliphist - OCI
-)
 
 # Standard Packages (CentOS/EPEL/Fedora)
 STANDARD_PACKAGES=(
@@ -100,14 +82,6 @@ KOJI_PACKAGES=(
 
 # --- Install Packages ---
 
-# Install Groups
-dnf -y install \
-    --setopt=install_weak_deps=False \
-    --enablerepo copr:copr.fedorainfracloud.org:yalter:niri-git \
-    --enablerepo copr:copr.fedorainfracloud.org:jreilly1821:danklinux \
-    --enablerepo copr:copr.fedorainfracloud.org:yselkowitz:cosmic-epel \
-    "${COPR_PACKAGES[@]}"
-
 dnf -y install "${STANDARD_PACKAGES[@]}"
 
 dnf -y install "${KOJI_PACKAGES[@]}"
@@ -115,7 +89,7 @@ dnf -y install "${KOJI_PACKAGES[@]}"
 # --- Configurations ---
 
 # Greetd PAM fix
-sed --sandbox -i -e '/gnome_keyring.so/ s/-auth/auth/ ; /gnome_keyring.so/ s/-session/session/' /etc/pam.d/greetd
+sed -i -e '/gnome_keyring.so/ s/-auth/auth/ ; /gnome_keyring.so/ s/-session/session/' /etc/pam.d/greetd
 
 # Multimedia
 dnf config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-multimedia.repo
@@ -126,8 +100,6 @@ dnf -y install --enablerepo=fedora-multimedia \
 # Systemd Niri Wants
 NIRI_SERVICES=(
     cliphist.service
-    swayidle.service
-    udiskie.service
     foot.service
     xwayland-satellite.service
 )
@@ -152,16 +124,12 @@ GLOBAL_ENABLES=(
     cliphist.service
     gnome-keyring-daemon.socket
     gnome-keyring-daemon.service
-    swayidle.service
-    udiskie.service
     xwayland-satellite.service
 )
 GLOBAL_PRESETS=(
     chezmoi-init
     chezmoi-update
     cliphist
-    swayidle
-    udiskie
     foot
     xwayland-satellite
 )
