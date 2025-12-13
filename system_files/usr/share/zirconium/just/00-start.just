@@ -27,9 +27,6 @@ toggle-user-motd:
     touch "${TARGET}"
     echo "Disabled the MOTD"
 
-preinstalled-flatpaks:
-    #!/usr/bin/env bash
-    flatpak preinstall --reinstall
 
 restart-shell:
     #!/usr/bin/env bash

@@ -5,31 +5,15 @@ set -xeuo pipefail
 install -d /usr/share/zirconium/
 
 # --- COPR Helper ---
-enable_copr() {
-    dnf -y copr enable "$1"
-    dnf -y copr disable "$1"
-}
+
 
 # --- Setup Repositories ---
-# enable_copr "yalter/niri-git"
-echo "priority=1" | tee -a /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:yalter:niri-git.repo
 
-# enable_copr "jreilly1821/danklinux"
-# enable_copr "yselkowitz/cosmic-epel"
 
 # --- Define Package Groups ---
 
 # COPR Packages
-COPR_PACKAGES=(
-    # niri - OCI
-    # quickshell-git - OCI
-    # dms - OCI
-    # dms-cli - OCI
-    # dms-greeter - OCI
-    # dgop - OCI
-    # matugen - OCI
-    # cliphist - OCI
-)
+
 
 # Standard Packages (CentOS/EPEL/Fedora)
 STANDARD_PACKAGES=(
@@ -57,12 +41,7 @@ STANDARD_PACKAGES=(
     xdg-desktop-portal-gnome
     xdg-desktop-portal-gtk
     xdg-user-dirs
-    # KDE/Qt components - Commented out due to conflict with quickshell-git (Qt 6.10) vs EPEL (Qt 6.9)
-    # kf6-kirigami
-    # qt6ct
-    # polkit-kde
-    # plasma-breeze
-    # kf6-qqc2-desktop-style
+
     # Fonts & Emoji
     default-fonts-core-emoji
     google-noto-color-emoji-fonts
@@ -71,49 +50,16 @@ STANDARD_PACKAGES=(
     default-fonts
 )
 
-# Koji / Fedora 43 Packages
-ARCH=$(uname -m)
-case "${ARCH}" in
-  x86_64|amd64) FEDORA_ARCH="x86_64" ;;
-  aarch64|arm64) FEDORA_ARCH="aarch64" ;;
-  *) echo "Unsupported architecture: ${ARCH}"; exit 1 ;;
-esac
 
-KOJI_BASE="https://kojipkgs.fedoraproject.org//packages"
-KOJI_PACKAGES=(
-    "${KOJI_BASE}/highway/1.3.0/1.fc43/${FEDORA_ARCH}/highway-1.3.0-1.fc43.${FEDORA_ARCH}.rpm"
-    # "${KOJI_BASE}/libjxl/0.11.1/7.fc43/${FEDORA_ARCH}/libjxl-0.11.1-7.fc43.${FEDORA_ARCH}.rpm"
-    "${KOJI_BASE}/iniparser/4.2.6/3.fc43/${FEDORA_ARCH}/iniparser-4.2.6-3.fc43.${FEDORA_ARCH}.rpm"
-    "${KOJI_BASE}/fcft/3.3.2/2.fc43/${FEDORA_ARCH}/fcft-3.3.2-2.fc43.${FEDORA_ARCH}.rpm"
-    "${KOJI_BASE}/utf8proc/2.10.0/2.fc43/${FEDORA_ARCH}/utf8proc-2.10.0-2.fc43.${FEDORA_ARCH}.rpm"
-    # "${KOJI_BASE}/glycin/2.0.4/1.fc43/${FEDORA_ARCH}/glycin-loaders-2.0.4-1.fc43.${FEDORA_ARCH}.rpm"
-    "${KOJI_BASE}/brightnessctl/0.5.1/14.fc43/${FEDORA_ARCH}/brightnessctl-0.5.1-14.fc43.${FEDORA_ARCH}.rpm"
-    "${KOJI_BASE}/cava/0.10.2/5.fc43/${FEDORA_ARCH}/cava-0.10.2-5.fc43.${FEDORA_ARCH}.rpm"
-    "${KOJI_BASE}/foot/1.25.0/1.fc43/${FEDORA_ARCH}/foot-1.25.0-1.fc43.${FEDORA_ARCH}.rpm"
-    # "${KOJI_BASE}/glycin/2.0.4/1.fc43/${FEDORA_ARCH}/glycin-thumbnailer-2.0.4-1.fc43.${FEDORA_ARCH}.rpm"
-    # "${KOJI_BASE}/tuigreet/0.9.1/4.fc43/${FEDORA_ARCH}/tuigreet-0.9.1-4.fc43.${FEDORA_ARCH}.rpm"
-    # "${KOJI_BASE}/wlsunset/0.4.0/4.fc43/${FEDORA_ARCH}/wlsunset-0.4.0-4.fc43.${FEDORA_ARCH}.rpm"
-    # "${KOJI_BASE}/xwayland-satellite/0.7/1.fc43/${FEDORA_ARCH}/xwayland-satellite-0.7-1.fc43.${FEDORA_ARCH}.rpm"
-    # "${KOJI_BASE}/input-remapper/2.2.0/1.fc43/noarch/input-remapper-2.2.0-1.fc43.noarch.rpm"
-    # "${KOJI_BASE}/udiskie/2.5.8/2.fc43/noarch/python3-udiskie-2.5.8-2.fc43.noarch.rpm"
-    # "${KOJI_BASE}/udiskie/2.5.8/2.fc43/noarch/udiskie-2.5.8-2.fc43.noarch.rpm"
-)
 
 # --- Install Packages ---
 
-# Install Groups
-# Install Groups
-# dnf -y install \
-#     --setopt=install_weak_deps=False \
-#     --enablerepo copr:copr.fedorainfracloud.org:yalter:niri-git \
-#     --enablerepo copr:copr.fedorainfracloud.org:jreilly1821:danklinux \
-#     --enablerepo copr:copr.fedorainfracloud.org:yselkowitz:cosmic-epel \
-#     "${COPR_PACKAGES[@]}"
+
 
 dnf -y install \
     "${STANDARD_PACKAGES[@]}"
 
-# dnf -y install "${KOJI_PACKAGES[@]}"
+
 
 # --- Configurations ---
 
@@ -151,7 +97,6 @@ cp -avf "/ctx/files"/. /
 
 # Global Systemd Enables/Presets
 GLOBAL_ENABLES=(
-    flatpak-preinstall.service
     chezmoi-init.service
     foot.service
     chezmoi-update.timer
@@ -203,3 +148,4 @@ fc-cache --force --really-force --system-only --verbose
 
 # Bashrc
 echo 'source /usr/share/zirconium/shell/pure.bash' | tee -a "/etc/bashrc"
+systemctl enable flatpak-preinstall.service
