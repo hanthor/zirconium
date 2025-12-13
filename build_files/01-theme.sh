@@ -118,6 +118,7 @@ dnf -y install \
 # --- Configurations ---
 
 # Greetd User
+groupadd -r -f video
 useradd -r -M -G video -s /sbin/nologin greetd
 
 # Greetd PAM fix
