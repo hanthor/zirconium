@@ -1,4 +1,5 @@
 ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
+ARG REPOSITORY="${REPOSITORY:-ghcr.io/zirconium-dev}"
 
 FROM scratch AS ctx
 
@@ -6,7 +7,29 @@ COPY build_files /build
 COPY system_files /files
 COPY cosign.pub /files/etc/pki/containers/zirconium.pub
 
+FROM ${REPOSITORY}/niri:latest AS niri
+FROM ${REPOSITORY}/dms:latest AS dms
+FROM ${REPOSITORY}/dgop:latest AS dgop
+FROM ${REPOSITORY}/cliphist:latest AS cliphist
+FROM ${REPOSITORY}/matugen:latest AS matugen
+FROM ${REPOSITORY}/wlsunset:latest AS wlsunset
+FROM ${REPOSITORY}/glycin:latest AS glycin
+FROM ${REPOSITORY}/libjxl:latest AS libjxl
+FROM ${REPOSITORY}/quickshell:latest AS quickshell
+
 FROM quay.io/centos-bootc/centos-bootc:stream10
+ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
+
+# Copy OCI Artifacts
+COPY --from=niri /usr/bin/niri /usr/bin/niri
+COPY --from=dms / /
+COPY --from=dgop /usr/bin/dgop /usr/bin/dgop
+COPY --from=cliphist /usr/bin/cliphist /usr/bin/cliphist
+COPY --from=matugen /usr/bin/matugen /usr/bin/matugen
+COPY --from=wlsunset /usr/bin/wlsunset /usr/bin/wlsunset
+COPY --from=glycin / /
+COPY --from=libjxl / /
+COPY --from=quickshell / /
 ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \

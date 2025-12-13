@@ -11,24 +11,24 @@ enable_copr() {
 }
 
 # --- Setup Repositories ---
-enable_copr "yalter/niri-git"
+# enable_copr "yalter/niri-git"
 echo "priority=1" | tee -a /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:yalter:niri-git.repo
 
-enable_copr "jreilly1821/danklinux"
+# enable_copr "jreilly1821/danklinux"
 enable_copr "yselkowitz/cosmic-epel"
 
 # --- Define Package Groups ---
 
 # COPR Packages
 COPR_PACKAGES=(
-    niri
-    quickshell-git
-    dms
-    dms-cli
-    dms-greeter
-    dgop
-    matugen
-    cliphist
+    # niri - OCI
+    # quickshell-git - OCI
+    # dms - OCI
+    # dms-cli - OCI
+    # dms-greeter - OCI
+    # dgop - OCI
+    # matugen - OCI
+    # cliphist - OCI
 )
 
 # Standard Packages (CentOS/EPEL/Fedora)
@@ -81,17 +81,17 @@ esac
 KOJI_BASE="https://kojipkgs.fedoraproject.org//packages"
 KOJI_PACKAGES=(
     "${KOJI_BASE}/highway/1.3.0/1.fc43/${FEDORA_ARCH}/highway-1.3.0-1.fc43.${FEDORA_ARCH}.rpm"
-    "${KOJI_BASE}/libjxl/0.11.1/7.fc43/${FEDORA_ARCH}/libjxl-0.11.1-7.fc43.${FEDORA_ARCH}.rpm"
+    # "${KOJI_BASE}/libjxl/0.11.1/7.fc43/${FEDORA_ARCH}/libjxl-0.11.1-7.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/iniparser/4.2.6/3.fc43/${FEDORA_ARCH}/iniparser-4.2.6-3.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/fcft/3.3.2/2.fc43/${FEDORA_ARCH}/fcft-3.3.2-2.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/utf8proc/2.10.0/2.fc43/${FEDORA_ARCH}/utf8proc-2.10.0-2.fc43.${FEDORA_ARCH}.rpm"
-    "${KOJI_BASE}/glycin/2.0.4/1.fc43/${FEDORA_ARCH}/glycin-loaders-2.0.4-1.fc43.${FEDORA_ARCH}.rpm"
+    # "${KOJI_BASE}/glycin/2.0.4/1.fc43/${FEDORA_ARCH}/glycin-loaders-2.0.4-1.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/brightnessctl/0.5.1/14.fc43/${FEDORA_ARCH}/brightnessctl-0.5.1-14.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/cava/0.10.2/5.fc43/${FEDORA_ARCH}/cava-0.10.2-5.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/foot/1.25.0/1.fc43/${FEDORA_ARCH}/foot-1.25.0-1.fc43.${FEDORA_ARCH}.rpm"
-    "${KOJI_BASE}/glycin/2.0.4/1.fc43/${FEDORA_ARCH}/glycin-thumbnailer-2.0.4-1.fc43.${FEDORA_ARCH}.rpm"
+    # "${KOJI_BASE}/glycin/2.0.4/1.fc43/${FEDORA_ARCH}/glycin-thumbnailer-2.0.4-1.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/tuigreet/0.9.1/4.fc43/${FEDORA_ARCH}/tuigreet-0.9.1-4.fc43.${FEDORA_ARCH}.rpm"
-    "${KOJI_BASE}/wlsunset/0.4.0/4.fc43/${FEDORA_ARCH}/wlsunset-0.4.0-4.fc43.${FEDORA_ARCH}.rpm"
+    # "${KOJI_BASE}/wlsunset/0.4.0/4.fc43/${FEDORA_ARCH}/wlsunset-0.4.0-4.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/xwayland-satellite/0.7/1.fc43/${FEDORA_ARCH}/xwayland-satellite-0.7-1.fc43.${FEDORA_ARCH}.rpm"
     # "${KOJI_BASE}/input-remapper/2.2.0/1.fc43/noarch/input-remapper-2.2.0-1.fc43.noarch.rpm"
     # "${KOJI_BASE}/udiskie/2.5.8/2.fc43/noarch/python3-udiskie-2.5.8-2.fc43.noarch.rpm"
@@ -121,7 +121,7 @@ sed --sandbox -i -e '/gnome_keyring.so/ s/-auth/auth/ ; /gnome_keyring.so/ s/-se
 dnf config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-multimedia.repo
 dnf config-manager setopt fedora-multimedia.enabled=0
 dnf -y install --enablerepo=fedora-multimedia \
-    ffmpeg libavcodec @multimedia gstreamer1-plugins-{bad-free,bad-free-libs,good,base} lame{,-libs} libjxl ffmpegthumbnailer
+    ffmpeg libavcodec @multimedia gstreamer1-plugins-{bad-free,bad-free-libs,good,base} lame{,-libs} ffmpegthumbnailer
 
 # Systemd Niri Wants
 NIRI_SERVICES=(

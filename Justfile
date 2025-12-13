@@ -48,6 +48,13 @@ disk-image $base_dir=base_dir $filesystem=filesystem:
 
 quick-iterate:
     #!/usr/bin/env bash
-    podman build -t zirconium:latest --no-cache .
+    just build-components
+    podman build -t zirconium:latest --no-cache . --build-arg BUILD_FLAVOR="${BUILD_FLAVOR:-}" --build-arg REPOSITORY="${REPOSITORY:-localhost}"
     just rootful
     just disk-image
+
+build-components:
+    #!/usr/bin/env bash
+    chmod +x build_files/build_components.py
+    REGISTRY="localhost" ./build_files/build_components.py
+
