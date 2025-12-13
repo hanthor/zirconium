@@ -8,32 +8,40 @@ COPY system_files /files
 COPY cosign.pub /files/etc/pki/containers/zirconium.pub
 
 # -----------------------------------------------------------------------------
-# niri
+# shared-bases
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS niri-builder
-
-# Install build dependencies
+FROM quay.io/centos/centos:stream10 AS rust-base
 RUN dnf -y install epel-release && \
     dnf -y --enablerepo=crb install \
-    cargo \
-    rust \
-    clang \
-    git \
-    make \
-    systemd-devel \
-    wayland-devel \
-    mesa-libgbm-devel \
-    libxkbcommon-devel \
-    pango-devel \
-    cairo-devel \
-    cairo-gobject-devel \
-    glib2-devel \
-    libseat-devel \
-    libdisplay-info-devel \
-    pipewire-devel \
-    libinput-devel \
-    libgudev-devel \
-    pkgconf
+    cargo rust clang git make gcc pkgconf meson ninja-build \
+    openssl-devel pam-devel systemd-devel \
+    wayland-devel mesa-libgbm-devel libxkbcommon-devel \
+    pango-devel cairo-devel glib2-devel pipewire-devel \
+    libinput-devel libgudev-devel libseat-devel libdisplay-info-devel \
+    xcb-util-cursor-devel libxcb-devel gtk4-devel libseccomp-devel \
+    lcms2-devel libheif-devel librsvg2-devel vala \
+    gobject-introspection-devel cairo-gobject-devel
+
+FROM quay.io/centos/centos:stream10 AS go-base
+RUN dnf -y install golang git make gcc
+
+FROM quay.io/centos/centos:stream10 AS c-base
+RUN dnf -y install epel-release && \
+    dnf -y --enablerepo=crb install \
+    gcc gcc-c++ clang make cmake meson ninja-build autoconf automake libtool git pkgconf \
+    systemd-devel wayland-devel wayland-protocols-devel scdoc \
+    fontconfig-devel freetype-devel pixman-devel harfbuzz-devel libpng-devel \
+    brotli-devel giflib-devel libjpeg-turbo-devel libwebp-devel \
+    libxkbcommon-devel check-devel fftw-devel ncurses-devel \
+    pulseaudio-libs-devel pipewire-devel alsa-lib-devel SDL2-devel iniparser-devel \
+    cli11-devel qt6-qtbase-devel qt6-qtbase-private-devel qt6-qtdeclarative-devel \
+    qt6-qtwayland-devel qt6-qtshadertools-devel libdrm-devel polkit-devel \
+    jemalloc-devel pam-devel spirv-tools
+
+# -----------------------------------------------------------------------------
+# niri
+# -----------------------------------------------------------------------------
+FROM rust-base AS niri-builder
 
 WORKDIR /build
 
@@ -46,13 +54,7 @@ RUN cargo build --release
 # -----------------------------------------------------------------------------
 # dms
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS dms-builder
-
-RUN dnf -y install \
-    golang \
-    git \
-    make \
-    gcc
+FROM go-base AS dms-builder
 
 WORKDIR /build
 
@@ -65,12 +67,7 @@ RUN go build -o dms ./cmd/dms
 # -----------------------------------------------------------------------------
 # dgop
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS dgop-builder
-
-RUN dnf -y install \
-    golang \
-    git \
-    make
+FROM go-base AS dgop-builder
 
 WORKDIR /build
 
@@ -80,12 +77,7 @@ RUN go build -o dgop ./cmd/cli
 # -----------------------------------------------------------------------------
 # cliphist
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS cliphist-builder
-
-RUN dnf -y install \
-    golang \
-    git \
-    make
+FROM go-base AS cliphist-builder
 
 WORKDIR /build
 
@@ -95,14 +87,7 @@ RUN go build -o cliphist .
 # -----------------------------------------------------------------------------
 # matugen
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS matugen-builder
-
-RUN dnf -y install \
-    cargo \
-    rust \
-    git \
-    gcc \
-    openssl-devel
+FROM rust-base AS matugen-builder
 
 WORKDIR /build
 
@@ -112,17 +97,7 @@ RUN cargo build --release
 # -----------------------------------------------------------------------------
 # wlsunset
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS wlsunset-builder
-
-RUN dnf -y install epel-release && \
-    dnf -y --enablerepo=crb install \
-    git \
-    meson \
-    ninja-build \
-    gcc \
-    wayland-devel \
-    wayland-protocols-devel \
-    scdoc
+FROM c-base AS wlsunset-builder
 
 WORKDIR /build
 
@@ -132,25 +107,7 @@ RUN meson setup build && ninja -C build
 # -----------------------------------------------------------------------------
 # glycin
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS glycin-builder
-
-RUN dnf -y install epel-release && \
-    dnf -y --enablerepo=crb install \
-    cargo \
-    rust \
-    git \
-    meson \
-    ninja-build \
-    gcc \
-    clang \
-    gtk4-devel \
-    libseccomp-devel \
-    lcms2-devel \
-    libheif-devel \
-    librsvg2-devel \
-    gobject-introspection-devel \
-    vala \
-    pkgconf
+FROM rust-base AS glycin-builder
 
 WORKDIR /build
 
@@ -162,20 +119,7 @@ RUN DESTDIR=/install ninja -C build install
 # -----------------------------------------------------------------------------
 # libjxl
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS libjxl-builder
-
-RUN dnf -y install epel-release && \
-    dnf -y --enablerepo=crb install \
-    cmake \
-    gcc-c++ \
-    clang \
-    git \
-    pkgconf \
-    brotli-devel \
-    giflib-devel \
-    libjpeg-turbo-devel \
-    libpng-devel \
-    libwebp-devel
+FROM c-base AS libjxl-builder
 
 WORKDIR /build
 
@@ -188,30 +132,7 @@ RUN cmake --install build --config Release --prefix /install/usr
 # -----------------------------------------------------------------------------
 # quickshell
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS quickshell-builder
-
-RUN dnf -y install epel-release && \
-    dnf -y --enablerepo=crb install \
-    cli11-devel \
-    cmake \
-    gcc-c++ \
-    git \
-    qt6-qtbase-devel \
-    qt6-qtbase-private-devel \
-    qt6-qtdeclarative-devel \
-    qt6-qtwayland-devel \
-    qt6-qtshadertools-devel \
-    wayland-protocols-devel \
-    libdrm-devel \
-    mesa-libgbm-devel \
-    pipewire-devel \
-    glib2-devel \
-    polkit-devel \
-    jemalloc-devel \
-    pam-devel \
-    spirv-tools \
-    wayland-devel \
-    pkgconf
+FROM c-base AS quickshell-builder
 
 WORKDIR /build
 
@@ -224,16 +145,7 @@ RUN cmake --install build --prefix /install/usr
 # -----------------------------------------------------------------------------
 # tuigreet
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS tuigreet-builder
-
-# Install build dependencies
-RUN dnf -y install epel-release && \
-    dnf -y --enablerepo=crb install \
-    cargo \
-    rust \
-    git \
-    gcc \
-    pkgconf
+FROM rust-base AS tuigreet-builder
 
 WORKDIR /build
 
@@ -246,19 +158,7 @@ RUN cargo build --release
 # -----------------------------------------------------------------------------
 # xwayland-satellite
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS xwayland-satellite-builder
-
-# Install build dependencies
-RUN dnf -y install epel-release && \
-    dnf -y --enablerepo=crb install \
-    cargo \
-    rust \
-    git \
-    gcc \
-    clang \
-    xcb-util-cursor-devel \
-    libxcb-devel \
-    pkgconf
+FROM rust-base AS xwayland-satellite-builder
 
 WORKDIR /build
 
@@ -271,16 +171,7 @@ RUN cargo build --release
 # -----------------------------------------------------------------------------
 # greetd
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS greetd-builder
-
-RUN dnf -y install epel-release && \
-    dnf -y --enablerepo=crb install \
-    cargo \
-    rust \
-    git \
-    pam-devel \
-    gcc \
-    pkgconf
+FROM rust-base AS greetd-builder
 
 WORKDIR /build
 RUN git clone https://git.sr.ht/~kennylevinsen/greetd .
@@ -296,8 +187,7 @@ RUN echo "#%PAM-1.0" > greetd.pam && \
 # -----------------------------------------------------------------------------
 # highway
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS highway-builder
-RUN dnf -y install cmake gcc-c++ git make
+FROM c-base AS highway-builder
 WORKDIR /build
 RUN git clone https://github.com/google/highway.git .
 RUN cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DHWY_ENABLE_EXAMPLES=OFF -DHWY_ENABLE_TESTS=OFF
@@ -307,8 +197,7 @@ RUN cmake --install build --prefix /install/usr
 # -----------------------------------------------------------------------------
 # utf8proc
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS utf8proc-builder
-RUN dnf -y install cmake gcc git make
+FROM c-base AS utf8proc-builder
 WORKDIR /build
 RUN git clone https://github.com/JuliaStrings/utf8proc.git .
 RUN cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
@@ -318,8 +207,7 @@ RUN cmake --install build --prefix /install/usr
 # -----------------------------------------------------------------------------
 # tllist (Internal Helper for fcft/foot)
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS tllist-builder
-RUN dnf -y install epel-release && dnf -y --enablerepo=crb install meson ninja-build gcc git
+FROM c-base AS tllist-builder
 WORKDIR /build
 RUN git clone https://codeberg.org/dnkl/tllist.git .
 RUN meson setup build --prefix=/usr
@@ -328,12 +216,7 @@ RUN DESTDIR=/install ninja -C build install
 # -----------------------------------------------------------------------------
 # fcft
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS fcft-builder
-RUN dnf -y install epel-release && \
-    dnf -y --enablerepo=crb install \
-    meson ninja-build gcc git \
-    fontconfig-devel freetype-devel pixman-devel harfbuzz-devel libpng-devel \
-    wayland-devel wayland-protocols-devel scdoc cmake check-devel
+FROM c-base AS fcft-builder
 WORKDIR /build
 # Copy deps
 COPY --from=tllist-builder /install /
@@ -345,12 +228,7 @@ RUN DESTDIR=/install ninja -C build install
 # -----------------------------------------------------------------------------
 # foot
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS foot-builder
-RUN dnf -y install epel-release && \
-    dnf -y --enablerepo=crb install \
-    meson ninja-build gcc git \
-    fontconfig-devel freetype-devel pixman-devel harfbuzz-devel libpng-devel \
-    wayland-devel wayland-protocols-devel libxkbcommon-devel scdoc cmake check-devel systemd-devel
+FROM c-base AS foot-builder
 WORKDIR /build
 # Copy deps
 COPY --from=tllist-builder /install /
@@ -363,8 +241,7 @@ RUN DESTDIR=/install ninja -C build install
 # -----------------------------------------------------------------------------
 # brightnessctl
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS brightnessctl-builder
-RUN dnf -y install gcc git make systemd-devel
+FROM c-base AS brightnessctl-builder
 WORKDIR /build
 RUN git clone https://github.com/Hummer12007/brightnessctl.git .
 RUN ./configure --prefix=/usr
@@ -374,11 +251,7 @@ RUN make install DESTDIR=/install
 # -----------------------------------------------------------------------------
 # cava
 # -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS cava-builder
-RUN dnf -y install epel-release && \
-    dnf -y --enablerepo=crb install \
-    autoconf automake libtool gcc git make \
-    fftw-devel ncurses-devel pulseaudio-libs-devel pipewire-devel alsa-lib-devel SDL2-devel iniparser-devel
+FROM c-base AS cava-builder
 WORKDIR /build
 # Cava usually bundles iniparser logic or needs it. We installed iniparser-devel.
 RUN git clone https://github.com/karlstav/cava.git .
