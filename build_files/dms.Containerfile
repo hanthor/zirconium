@@ -8,7 +8,9 @@ RUN dnf -y install \
 
 WORKDIR /build
 
-RUN git clone https://github.com/AvengeMedia/DankMaterialShell.git .
+# Clone DMS - pinned to v1.0.2 for supply chain security
+RUN git clone https://github.com/AvengeMedia/DankMaterialShell.git . && \
+    git checkout fe3163d02fe118e83b480efb9bed0127e7d83382
 
 # Build Core CLI
 WORKDIR /build/core

@@ -7,7 +7,10 @@ RUN dnf -y install \
 
 WORKDIR /build
 
-RUN git clone https://github.com/AvengeMedia/dgop.git .
+# Clone dgop - pinned to v0.1.11 for supply chain security
+RUN git clone https://github.com/AvengeMedia/dgop.git . && \
+    git checkout 6cf638dde818f9f8a2e26d0243179c43cb3458d7
+
 RUN go build -o dgop ./cmd/cli
 
 FROM scratch

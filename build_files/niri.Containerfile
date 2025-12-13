@@ -25,8 +25,9 @@ RUN dnf -y install epel-release && \
 
 WORKDIR /build
 
-# clone niri
-RUN git clone https://github.com/YaLTeR/niri.git .
+# clone niri - pinned to v25.11 for supply chain security
+RUN git clone https://github.com/YaLTeR/niri.git . && \
+    git checkout 15c52bfb4318f3b2452f511d5367b4bfe6335242
 
 # Build niri
 RUN cargo build --release

@@ -7,7 +7,10 @@ RUN dnf -y install \
 
 WORKDIR /build
 
-RUN git clone https://github.com/sentriz/cliphist.git .
+# Clone cliphist - pinned to v0.7.0 for supply chain security
+RUN git clone https://github.com/sentriz/cliphist.git . && \
+    git checkout efb61cb5b5a28d896c05a24ac83b9c39c96575f2
+
 RUN go build -o cliphist .
 
 FROM scratch

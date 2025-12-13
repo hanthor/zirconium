@@ -25,7 +25,9 @@ RUN dnf -y install epel-release && \
 
 WORKDIR /build
 
-RUN git clone --recursive https://git.outfoxxed.me/quickshell/quickshell.git .
+# Clone quickshell - pinned to latest stable commit for supply chain security
+RUN git clone --recursive https://git.outfoxxed.me/quickshell/quickshell.git . && \
+    git checkout 26531fc46ef17e9365b03770edd3fb9206fcb460
 
 RUN cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DCRASH_REPORTER=OFF
 RUN cmake --build build

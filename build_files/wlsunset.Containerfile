@@ -12,7 +12,10 @@ RUN dnf -y install epel-release && \
 
 WORKDIR /build
 
-RUN git clone https://github.com/kennylevinsen/wlsunset.git .
+# Clone wlsunset - pinned to latest stable commit for supply chain security
+RUN git clone https://github.com/kennylevinsen/wlsunset.git . && \
+    git checkout f7e4d0b5fd5f57ee1cc0d6fe2f7547eca3a47c14
+
 RUN meson setup build && ninja -C build
 
 FROM scratch
