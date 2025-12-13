@@ -45,6 +45,7 @@ STANDARD_PACKAGES=(
     # greetd
     # greetd-selinux
     just
+    iniparser
     libwayland-server
     nautilus
     orca

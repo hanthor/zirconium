@@ -305,17 +305,6 @@ RUN cmake --build build
 RUN cmake --install build --prefix /install/usr
 
 # -----------------------------------------------------------------------------
-# iniparser
-# -----------------------------------------------------------------------------
-FROM quay.io/centos/centos:stream10 AS iniparser-builder
-RUN dnf -y install gcc git make cmake
-WORKDIR /build
-RUN git clone https://github.com/ndevilla/iniparser.git .
-RUN cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
-RUN cmake --build build
-RUN cmake --install build --prefix /install/usr
-
-# -----------------------------------------------------------------------------
 # utf8proc
 # -----------------------------------------------------------------------------
 FROM quay.io/centos/centos:stream10 AS utf8proc-builder
@@ -368,7 +357,7 @@ COPY --from=tllist-builder /install /
 COPY --from=utf8proc-builder /install /
 COPY --from=fcft-builder /install /
 RUN git clone https://codeberg.org/dnkl/foot.git .
-RUN meson setup build --prefix=/usr -Ddocs=disabled -Dtests=disabled && ninja -C build
+RUN meson setup build --prefix=/usr -Ddocs=disabled -Dtests=false && ninja -C build
 RUN DESTDIR=/install ninja -C build install
 
 # -----------------------------------------------------------------------------
@@ -389,12 +378,9 @@ FROM quay.io/centos/centos:stream10 AS cava-builder
 RUN dnf -y install epel-release && \
     dnf -y --enablerepo=crb install \
     autoconf automake libtool gcc git make \
-    fftw-devel ncurses-devel pulseaudio-libs-devel pipewire-devel alsa-lib-devel SDL2-devel
+    fftw-devel ncurses-devel pulseaudio-libs-devel pipewire-devel alsa-lib-devel SDL2-devel iniparser-devel
 WORKDIR /build
-# Cava usually bundles iniparser logic or needs it. We built it, so let's provide it.
-COPY --from=iniparser-builder /install/usr/include /usr/include
-COPY --from=iniparser-builder /install/usr/lib64 /usr/lib64
-COPY --from=iniparser-builder /install/usr/lib /usr/lib
+# Cava usually bundles iniparser logic or needs it. We installed iniparser-devel.
 RUN git clone https://github.com/karlstav/cava.git .
 RUN ./autogen.sh && ./configure --prefix=/usr
 RUN make
@@ -441,9 +427,6 @@ COPY --from=greetd-builder /build/greetd.pam /etc/pam.d/greetd
 
 # highway
 COPY --from=highway-builder /install /
-
-# iniparser
-COPY --from=iniparser-builder /install /
 
 # utf8proc
 COPY --from=utf8proc-builder /install /

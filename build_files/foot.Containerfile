@@ -44,7 +44,7 @@ RUN git clone https://codeberg.org/dnkl/fcft.git && \
 # Build foot
 WORKDIR /build/foot
 RUN git clone https://codeberg.org/dnkl/foot.git .
-RUN meson setup build --prefix=/usr -Ddocs=disabled -Dtests=disabled && ninja -C build
+RUN meson setup build --prefix=/usr -Ddocs=disabled -Dtests=false && ninja -C build
 RUN DESTDIR=/install ninja -C build install
 
 FROM scratch
