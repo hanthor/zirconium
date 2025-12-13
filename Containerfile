@@ -16,6 +16,9 @@ FROM ${REPOSITORY}/wlsunset:latest AS wlsunset
 FROM ${REPOSITORY}/glycin:latest AS glycin
 FROM ${REPOSITORY}/libjxl:latest AS libjxl
 FROM ${REPOSITORY}/quickshell:latest AS quickshell
+FROM ${REPOSITORY}/tuigreet:latest AS tuigreet
+FROM ${REPOSITORY}/xwayland-satellite:latest AS xwayland-satellite
+FROM ${REPOSITORY}/greetd:latest AS greetd
 
 FROM quay.io/centos-bootc/centos-bootc:stream10
 ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
@@ -30,6 +33,9 @@ COPY --from=wlsunset /usr/bin/wlsunset /usr/bin/wlsunset
 COPY --from=glycin / /
 COPY --from=libjxl / /
 COPY --from=quickshell / /
+COPY --from=tuigreet /usr/bin/tuigreet /usr/bin/tuigreet
+COPY --from=xwayland-satellite /usr/bin/xwayland-satellite /usr/bin/xwayland-satellite
+COPY --from=greetd / /
 ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \

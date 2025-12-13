@@ -15,7 +15,7 @@ enable_copr() {
 echo "priority=1" | tee -a /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:yalter:niri-git.repo
 
 # enable_copr "jreilly1821/danklinux"
-enable_copr "yselkowitz/cosmic-epel"
+# enable_copr "yselkowitz/cosmic-epel"
 
 # --- Define Package Groups ---
 
@@ -42,8 +42,8 @@ STANDARD_PACKAGES=(
     git-core
     gnome-keyring
     gnome-keyring-pam
-    greetd
-    greetd-selinux
+    # greetd
+    # greetd-selinux
     just
     libwayland-server
     nautilus
@@ -90,9 +90,9 @@ KOJI_PACKAGES=(
     "${KOJI_BASE}/cava/0.10.2/5.fc43/${FEDORA_ARCH}/cava-0.10.2-5.fc43.${FEDORA_ARCH}.rpm"
     "${KOJI_BASE}/foot/1.25.0/1.fc43/${FEDORA_ARCH}/foot-1.25.0-1.fc43.${FEDORA_ARCH}.rpm"
     # "${KOJI_BASE}/glycin/2.0.4/1.fc43/${FEDORA_ARCH}/glycin-thumbnailer-2.0.4-1.fc43.${FEDORA_ARCH}.rpm"
-    "${KOJI_BASE}/tuigreet/0.9.1/4.fc43/${FEDORA_ARCH}/tuigreet-0.9.1-4.fc43.${FEDORA_ARCH}.rpm"
+    # "${KOJI_BASE}/tuigreet/0.9.1/4.fc43/${FEDORA_ARCH}/tuigreet-0.9.1-4.fc43.${FEDORA_ARCH}.rpm"
     # "${KOJI_BASE}/wlsunset/0.4.0/4.fc43/${FEDORA_ARCH}/wlsunset-0.4.0-4.fc43.${FEDORA_ARCH}.rpm"
-    "${KOJI_BASE}/xwayland-satellite/0.7/1.fc43/${FEDORA_ARCH}/xwayland-satellite-0.7-1.fc43.${FEDORA_ARCH}.rpm"
+    # "${KOJI_BASE}/xwayland-satellite/0.7/1.fc43/${FEDORA_ARCH}/xwayland-satellite-0.7-1.fc43.${FEDORA_ARCH}.rpm"
     # "${KOJI_BASE}/input-remapper/2.2.0/1.fc43/noarch/input-remapper-2.2.0-1.fc43.noarch.rpm"
     # "${KOJI_BASE}/udiskie/2.5.8/2.fc43/noarch/python3-udiskie-2.5.8-2.fc43.noarch.rpm"
     # "${KOJI_BASE}/udiskie/2.5.8/2.fc43/noarch/udiskie-2.5.8-2.fc43.noarch.rpm"
@@ -101,21 +101,35 @@ KOJI_PACKAGES=(
 # --- Install Packages ---
 
 # Install Groups
-dnf -y install \
-    --setopt=install_weak_deps=False \
-    --enablerepo copr:copr.fedorainfracloud.org:yalter:niri-git \
-    --enablerepo copr:copr.fedorainfracloud.org:jreilly1821:danklinux \
-    --enablerepo copr:copr.fedorainfracloud.org:yselkowitz:cosmic-epel \
-    "${COPR_PACKAGES[@]}"
+# Install Groups
+# dnf -y install \
+#     --setopt=install_weak_deps=False \
+#     --enablerepo copr:copr.fedorainfracloud.org:yalter:niri-git \
+#     --enablerepo copr:copr.fedorainfracloud.org:jreilly1821:danklinux \
+#     --enablerepo copr:copr.fedorainfracloud.org:yselkowitz:cosmic-epel \
+#     "${COPR_PACKAGES[@]}"
 
-dnf -y install "${STANDARD_PACKAGES[@]}"
+dnf -y install \
+    "${STANDARD_PACKAGES[@]}"
 
 dnf -y install "${KOJI_PACKAGES[@]}"
 
 # --- Configurations ---
 
+# Greetd User
+useradd -r -M -G video -s /sbin/nologin greetd
+
 # Greetd PAM fix
-sed --sandbox -i -e '/gnome_keyring.so/ s/-auth/auth/ ; /gnome_keyring.so/ s/-session/session/' /etc/pam.d/greetd
+# sed --sandbox -i -e '/gnome_keyring.so/ s/-auth/auth/ ; /gnome_keyring.so/ s/-session/session/' /etc/pam.d/greetd
+cat > /etc/pam.d/greetd <<EOF
+#%PAM-1.0
+auth       include      system-auth
+auth       optional     pam_gnome_keyring.so
+account    include      system-auth
+password   include      system-auth
+session    include      system-auth
+session    optional     pam_gnome_keyring.so auto_start
+EOF
 
 # Multimedia
 dnf config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-multimedia.repo

@@ -38,6 +38,9 @@ jobs:
           - glycin
           - libjxl
           - quickshell
+          - tuigreet
+          - xwayland-satellite
+          - greetd
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -80,6 +83,8 @@ jobs:
           - glycin
           - libjxl
           - quickshell
+          - tuigreet
+          - xwayland-satellite
     steps:
       - name: Login to Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
