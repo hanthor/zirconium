@@ -72,24 +72,7 @@ jobs:
 
   build-components:
     needs: [detect-changes]
-    # Skip this job if detect-changes was skipped (schedule/manual) OR if it ran but nothing changed for this component
-    if: |
-      always() &&
-      (needs.detect-changes.result == 'skipped' ||
-       (github.event_name == 'pull_request' || github.event_name == 'push') && (
-         needs.detect-changes.outputs.niri == 'true' ||
-         needs.detect-changes.outputs.dms == 'true' ||
-         needs.detect-changes.outputs.dgop == 'true' ||
-         needs.detect-changes.outputs.cliphist == 'true' ||
-         needs.detect-changes.outputs.matugen == 'true' ||
-         needs.detect-changes.outputs.wlsunset == 'true' ||
-         needs.detect-changes.outputs.glycin == 'true' ||
-         needs.detect-changes.outputs.libjxl == 'true' ||
-         needs.detect-changes.outputs.quickshell == 'true' ||
-         needs.detect-changes.outputs.tuigreet == 'true' ||
-         needs.detect-changes.outputs['xwayland-satellite'] == 'true' ||
-         needs.detect-changes.outputs.greetd == 'true'
-       ))
+    if: always()
     runs-on: ${{ matrix.platform == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     permissions:
       contents: read
