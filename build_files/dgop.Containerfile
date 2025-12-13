@@ -8,7 +8,7 @@ RUN dnf -y install \
 WORKDIR /build
 
 RUN git clone https://github.com/AvengeMedia/dgop.git .
-RUN go build -o dgop .
+RUN go build -o dgop ./cmd/cli
 
 FROM scratch
 COPY --from=builder /build/dgop /usr/bin/dgop

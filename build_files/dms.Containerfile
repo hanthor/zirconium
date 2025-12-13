@@ -3,7 +3,8 @@ FROM quay.io/centos/centos:stream10 AS builder
 RUN dnf -y install \
     golang \
     git \
-    make
+    make \
+    gcc
 
 WORKDIR /build
 
@@ -11,7 +12,7 @@ RUN git clone https://github.com/AvengeMedia/DankMaterialShell.git .
 
 # Build Core CLI
 WORKDIR /build/core
-RUN make
+RUN go build -o dms ./cmd/dms
 
 # Copy artifacts
 FROM scratch
