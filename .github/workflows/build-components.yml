@@ -85,6 +85,7 @@ jobs:
           - quickshell
           - tuigreet
           - xwayland-satellite
+          - greetd
     steps:
       - name: Login to Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
