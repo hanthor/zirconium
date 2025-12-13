@@ -1,0 +1,361 @@
+# -----------------------------------------------------------------------------
+# ctx (Build Context)
+# -----------------------------------------------------------------------------
+FROM scratch AS ctx
+
+COPY build_files /build
+COPY system_files /files
+COPY cosign.pub /files/etc/pki/containers/zirconium.pub
+
+# -----------------------------------------------------------------------------
+# niri
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS niri-builder
+
+# Install build dependencies
+RUN dnf -y install epel-release && \
+    dnf -y --enablerepo=crb install \
+    cargo \
+    rust \
+    clang \
+    git \
+    make \
+    systemd-devel \
+    wayland-devel \
+    mesa-libgbm-devel \
+    libxkbcommon-devel \
+    pango-devel \
+    cairo-devel \
+    cairo-gobject-devel \
+    glib2-devel \
+    libseat-devel \
+    libdisplay-info-devel \
+    pipewire-devel \
+    libinput-devel \
+    libgudev-devel \
+    pkgconf
+
+WORKDIR /build
+
+# clone niri
+RUN git clone https://github.com/YaLTeR/niri.git .
+
+# Build niri
+RUN cargo build --release
+
+# -----------------------------------------------------------------------------
+# dms
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS dms-builder
+
+RUN dnf -y install \
+    golang \
+    git \
+    make \
+    gcc
+
+WORKDIR /build
+
+RUN git clone https://github.com/AvengeMedia/DankMaterialShell.git .
+
+# Build Core CLI
+WORKDIR /build/core
+RUN go build -o dms ./cmd/dms
+
+# -----------------------------------------------------------------------------
+# dgop
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS dgop-builder
+
+RUN dnf -y install \
+    golang \
+    git \
+    make
+
+WORKDIR /build
+
+RUN git clone https://github.com/AvengeMedia/dgop.git .
+RUN go build -o dgop ./cmd/cli
+
+# -----------------------------------------------------------------------------
+# cliphist
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS cliphist-builder
+
+RUN dnf -y install \
+    golang \
+    git \
+    make
+
+WORKDIR /build
+
+RUN git clone https://github.com/sentriz/cliphist.git .
+RUN go build -o cliphist .
+
+# -----------------------------------------------------------------------------
+# matugen
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS matugen-builder
+
+RUN dnf -y install \
+    cargo \
+    rust \
+    git \
+    gcc \
+    openssl-devel
+
+WORKDIR /build
+
+RUN git clone https://github.com/InioX/matugen.git .
+RUN cargo build --release
+
+# -----------------------------------------------------------------------------
+# wlsunset
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS wlsunset-builder
+
+RUN dnf -y install epel-release && \
+    dnf -y --enablerepo=crb install \
+    git \
+    meson \
+    ninja-build \
+    gcc \
+    wayland-devel \
+    wayland-protocols-devel \
+    scdoc
+
+WORKDIR /build
+
+RUN git clone https://github.com/kennylevinsen/wlsunset.git .
+RUN meson setup build && ninja -C build
+
+# -----------------------------------------------------------------------------
+# glycin
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS glycin-builder
+
+RUN dnf -y install epel-release && \
+    dnf -y --enablerepo=crb install \
+    cargo \
+    rust \
+    git \
+    meson \
+    ninja-build \
+    gcc \
+    clang \
+    gtk4-devel \
+    libseccomp-devel \
+    lcms2-devel \
+    libheif-devel \
+    librsvg2-devel \
+    gobject-introspection-devel \
+    vala \
+    pkgconf
+
+WORKDIR /build
+
+RUN git clone https://gitlab.gnome.org/GNOME/glycin.git .
+
+RUN meson setup build --prefix=/usr -Dloaders=glycin-heif,glycin-image-rs,glycin-svg && ninja -C build
+RUN DESTDIR=/install ninja -C build install
+
+# -----------------------------------------------------------------------------
+# libjxl
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS libjxl-builder
+
+RUN dnf -y install epel-release && \
+    dnf -y --enablerepo=crb install \
+    cmake \
+    gcc-c++ \
+    clang \
+    git \
+    pkgconf \
+    brotli-devel \
+    giflib-devel \
+    libjpeg-turbo-devel \
+    libpng-devel \
+    libwebp-devel
+
+WORKDIR /build
+
+RUN git clone --recursive https://github.com/libjxl/libjxl.git .
+
+RUN cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+RUN cmake --build build --config Release
+RUN cmake --install build --config Release --prefix /install/usr
+
+# -----------------------------------------------------------------------------
+# quickshell
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS quickshell-builder
+
+RUN dnf -y install epel-release && \
+    dnf -y --enablerepo=crb install \
+    cli11-devel \
+    cmake \
+    gcc-c++ \
+    git \
+    qt6-qtbase-devel \
+    qt6-qtbase-private-devel \
+    qt6-qtdeclarative-devel \
+    qt6-qtwayland-devel \
+    qt6-qtshadertools-devel \
+    wayland-protocols-devel \
+    libdrm-devel \
+    mesa-libgbm-devel \
+    pipewire-devel \
+    glib2-devel \
+    polkit-devel \
+    jemalloc-devel \
+    pam-devel \
+    spirv-tools \
+    wayland-devel \
+    pkgconf
+
+WORKDIR /build
+
+RUN git clone --recursive https://git.outfoxxed.me/quickshell/quickshell.git .
+
+RUN cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DCRASH_REPORTER=OFF
+RUN cmake --build build
+RUN cmake --install build --prefix /install/usr
+
+# -----------------------------------------------------------------------------
+# tuigreet
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS tuigreet-builder
+
+# Install build dependencies
+RUN dnf -y install epel-release && \
+    dnf -y --enablerepo=crb install \
+    cargo \
+    rust \
+    git \
+    gcc \
+    pkgconf
+
+WORKDIR /build
+
+# clone tuigreet
+RUN git clone https://github.com/apognu/tuigreet.git .
+
+# Build tuigreet
+RUN cargo build --release
+
+# -----------------------------------------------------------------------------
+# xwayland-satellite
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS xwayland-satellite-builder
+
+# Install build dependencies
+RUN dnf -y install epel-release && \
+    dnf -y --enablerepo=crb install \
+    cargo \
+    rust \
+    git \
+    gcc \
+    clang \
+    xcb-util-cursor-devel \
+    libxcb-devel \
+    pkgconf
+
+WORKDIR /build
+
+# clone xwayland-satellite
+RUN git clone https://github.com/Supreeeme/xwayland-satellite.git .
+
+# Build xwayland-satellite
+RUN cargo build --release
+
+# -----------------------------------------------------------------------------
+# greetd
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS greetd-builder
+
+RUN dnf -y install epel-release && \
+    dnf -y --enablerepo=crb install \
+    cargo \
+    rust \
+    git \
+    pam-devel \
+    gcc \
+    pkgconf
+
+WORKDIR /build
+RUN git clone https://git.sr.ht/~kennylevinsen/greetd .
+RUN cargo build --release
+
+# Create PAM file
+RUN echo "#%PAM-1.0" > greetd.pam && \
+    echo "auth       include      system-auth" >> greetd.pam && \
+    echo "account    include      system-auth" >> greetd.pam && \
+    echo "password   include      system-auth" >> greetd.pam && \
+    echo "session    include      system-auth" >> greetd.pam
+
+# -----------------------------------------------------------------------------
+# Final Stage
+# -----------------------------------------------------------------------------
+FROM quay.io/centos-bootc/centos-bootc:stream10 AS final
+
+ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
+
+# Copy artifacts from builders
+COPY --from=niri-builder /build/target/release/niri /usr/bin/niri
+
+# dms
+COPY --from=dms-builder /build/core/dms /usr/bin/dms
+COPY --from=dms-builder /build/quickshell /usr/share/dms/shell
+COPY --from=dms-builder /build/quickshell/Modules/Greetd /usr/share/dms/greeter
+
+COPY --from=dgop-builder /build/dgop /usr/bin/dgop
+COPY --from=cliphist-builder /build/cliphist /usr/bin/cliphist
+COPY --from=matugen-builder /build/target/release/matugen /usr/bin/matugen
+COPY --from=wlsunset-builder /build/build/wlsunset /usr/bin/wlsunset
+
+# glycin
+COPY --from=glycin-builder /install /
+
+# libjxl
+COPY --from=libjxl-builder /install /
+
+# quickshell
+COPY --from=quickshell-builder /install /
+
+COPY --from=tuigreet-builder /build/target/release/tuigreet /usr/bin/tuigreet
+
+COPY --from=xwayland-satellite-builder /build/target/release/xwayland-satellite /usr/bin/xwayland-satellite
+
+# greetd
+COPY --from=greetd-builder /build/target/release/greetd /usr/bin/greetd
+COPY --from=greetd-builder /build/target/release/agreety /usr/bin/agreety
+COPY --from=greetd-builder /build/greetd.service /usr/lib/systemd/system/greetd.service
+COPY --from=greetd-builder /build/greetd.pam /etc/pam.d/greetd
+
+ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=tmpfs,dst=/var \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/build/00-base.sh
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=tmpfs,dst=/var \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/build/01-theme.sh
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=tmpfs,dst=/var \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/build/02-extras.sh
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    /ctx/build/03-nvidia.sh
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    /ctx/build/99-cleanup.sh
+
+# This is handy for VM testing
+# RUN usermod -p "$(echo "changeme" | mkpasswd -s)" root
+
+RUN rm -rf /var/* && bootc container lint

@@ -1,0 +1,80 @@
+name: Experimental Consolidated Build
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experimental-multistage
+    paths:
+      - "Containerfile.experimental"
+      - "build_files/**"
+
+env:
+  IMAGE_NAME: "${{ github.event.repository.name }}"
+  IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
+  DEFAULT_TAG: "experimental"
+
+jobs:
+  build-experimental:
+    name: Build Experimental Image
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [amd64, arm64]
+    runs-on: ${{ matrix.platform == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Mount BTRFS for podman storage
+        if: ${{ matrix.platform != 'arm64' }}
+        uses: ublue-os/container-storage-action@911baca08baf30c8654933e9e9723cb399892140
+        continue-on-error: true
+        with:
+          target-dir: /var/lib/containers
+          mount-opts: compress-force=zstd:2
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Image
+        id: build
+        run: |
+          set -x
+          # Using $(nproc) to maximize parallelism on the runner
+          podman build --jobs $(nproc) -t "${IMAGE_NAME}:${DEFAULT_TAG}-${{ matrix.platform }}" -f Containerfile.experimental .
+
+      - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        env:
+          REGISTRY: ghcr.io
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
+
+      - name: Push Image
+        if: github.event_name != 'pull_request'
+        run: |
+          podman push "${IMAGE_NAME}:${DEFAULT_TAG}-${{ matrix.platform }}" "${IMAGE_REGISTRY}/${IMAGE_NAME}:${DEFAULT_TAG}-${{ matrix.platform }}"
+
+  manifest:
+    name: Create Manifest
+    runs-on: ubuntu-latest
+    needs: build-experimental
+    if: github.event_name != 'pull_request'
+    permissions:
+      packages: write
+      id-token: write
+    steps:
+      - name: Login to GitHub Container Registry
+        env:
+          REGISTRY: ghcr.io
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
+
+      - name: Create and Push Manifest
+        run: |
+          MANIFEST="${IMAGE_REGISTRY}/${IMAGE_NAME}:${DEFAULT_TAG}"
+          podman manifest create "${MANIFEST}"
+          podman manifest add "${MANIFEST}" "${MANIFEST}-amd64"
+          podman manifest add "${MANIFEST}" "${MANIFEST}-arm64"
+          podman manifest push "${MANIFEST}"
