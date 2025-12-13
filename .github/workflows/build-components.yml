@@ -1,0 +1,59 @@
+name: Build Components
+on:
+  pull_request:
+    paths:
+      - "build_files/*.Containerfile"
+  push:
+    branches:
+      - main
+    paths:
+      - "build_files/*.Containerfile"
+  schedule:
+    - cron: "05 10 * * *" # 10:05am UTC everyday
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: ${{ github.repository_owner }}
+
+jobs:
+  build-components:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        component:
+          - niri
+          - dms
+          - dgop
+          - cliphist
+          - matugen
+          - wlsunset
+          - glycin
+          - libjxl
+          - quickshell
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Image
+        id: build
+        run: |
+          IMAGE_NAME="${REGISTRY}/${OWNER}/${{ matrix.component }}"
+          podman build \
+            -f build_files/${{ matrix.component }}.Containerfile \
+            -t "${IMAGE_NAME}:latest" \
+            .
+          echo "image=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Login to Registry
+        if: github.event_name != 'pull_request'
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
+
+      - name: Push Image
+        if: github.event_name != 'pull_request'
+        run: |
+          podman push "${{ steps.build.outputs.image }}:latest"
