@@ -67,7 +67,7 @@ jobs:
   manifest:
     needs: build-components
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
+    if: always() && github.event_name != 'pull_request'
     permissions:
       packages: write
     strategy:
@@ -85,14 +85,39 @@ jobs:
           - quickshell
           - tuigreet
           - xwayland-satellite
+          - greetd
     steps:
       - name: Login to Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
 
       - name: Create and Push Manifest
+        continue-on-error: true
         run: |
           IMAGE_NAME="${REGISTRY}/${OWNER}/${{ matrix.component }}"
-          podman manifest create "${IMAGE_NAME}:latest"
-          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64"
-          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64"
-          podman manifest push "${IMAGE_NAME}:latest"
+          
+          # Remove existing manifest if it exists to ensure clean state
+          podman manifest rm "${IMAGE_NAME}:latest" 2>/dev/null || true
+          
+          # Try to create the manifest - this will fail if either architecture image is missing
+          # but we continue with other components due to continue-on-error
+          if ! podman manifest create "${IMAGE_NAME}:latest"; then
+            echo "Failed to create manifest for ${{ matrix.component }}"
+            exit 1
+          fi
+          
+          if ! podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64"; then
+            echo "Failed to add amd64 image for ${{ matrix.component }}"
+            exit 1
+          fi
+          
+          if ! podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64"; then
+            echo "Failed to add arm64 image for ${{ matrix.component }}"
+            exit 1
+          fi
+          
+          if ! podman manifest push "${IMAGE_NAME}:latest"; then
+            echo "Failed to push manifest for ${{ matrix.component }}"
+            exit 1
+          fi
+          
+          echo "Successfully created and pushed manifest for ${{ matrix.component }}"
