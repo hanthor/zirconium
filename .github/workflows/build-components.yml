@@ -67,7 +67,7 @@ jobs:
   manifest:
     needs: build-components
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
+    if: always() && github.event_name != 'pull_request'
     permissions:
       packages: write
     strategy:
@@ -91,9 +91,13 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin "${REGISTRY}"
 
       - name: Create and Push Manifest
+        continue-on-error: true
         run: |
           IMAGE_NAME="${REGISTRY}/${OWNER}/${{ matrix.component }}"
-          podman manifest create "${IMAGE_NAME}:latest"
-          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64"
-          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64"
+          
+          # Try to create the manifest - this will fail if either architecture image is missing
+          # but we continue with other components due to continue-on-error
+          podman manifest create "${IMAGE_NAME}:latest" || exit 0
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" || exit 0
+          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" || exit 0
           podman manifest push "${IMAGE_NAME}:latest"
