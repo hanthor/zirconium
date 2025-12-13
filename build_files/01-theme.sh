@@ -106,7 +106,6 @@ systemctl enable --global chezmoi-init.service
 systemctl enable --global foot.service
 systemctl enable --global chezmoi-update.timer
 systemctl enable --global dms.service
-systemctl enable --global dsearch.service
 systemctl enable --global gnome-keyring-daemon.socket
 systemctl enable --global gnome-keyring-daemon.service
 systemctl enable --global swayidle.service
