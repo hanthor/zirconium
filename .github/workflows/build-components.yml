@@ -97,7 +97,24 @@ jobs:
           
           # Try to create the manifest - this will fail if either architecture image is missing
           # but we continue with other components due to continue-on-error
-          podman manifest create "${IMAGE_NAME}:latest" || exit 0
-          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64" || exit 0
-          podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64" || exit 0
-          podman manifest push "${IMAGE_NAME}:latest" || exit 0
+          if ! podman manifest create "${IMAGE_NAME}:latest"; then
+            echo "Failed to create manifest for ${{ matrix.component }}"
+            exit 0
+          fi
+          
+          if ! podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-amd64"; then
+            echo "Failed to add amd64 image for ${{ matrix.component }}"
+            exit 0
+          fi
+          
+          if ! podman manifest add "${IMAGE_NAME}:latest" "${IMAGE_NAME}:latest-arm64"; then
+            echo "Failed to add arm64 image for ${{ matrix.component }}"
+            exit 0
+          fi
+          
+          if ! podman manifest push "${IMAGE_NAME}:latest"; then
+            echo "Failed to push manifest for ${{ matrix.component }}"
+            exit 0
+          fi
+          
+          echo "Successfully created and pushed manifest for ${{ matrix.component }}"
