@@ -117,9 +117,6 @@ dnf -y install \
 
 # --- Configurations ---
 
-# Greetd User
-useradd -r -M -G video -s /sbin/nologin greetd
-
 # Greetd PAM fix
 # sed --sandbox -i -e '/gnome_keyring.so/ s/-auth/auth/ ; /gnome_keyring.so/ s/-session/session/' /etc/pam.d/greetd
 cat > /etc/pam.d/greetd <<EOF
