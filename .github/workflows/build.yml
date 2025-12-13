@@ -4,13 +4,16 @@ on:
   pull_request:
     branches:
       - main
-  schedule:
-    - cron: "05 10 * * *" # 10:05am UTC everyday
+  workflow_run:
+    workflows: ["Build Components"]
+    types:
+      - completed
   push:
     branches:
       - main
     paths-ignore:
       - "**/README.md"
+      - "build_files/*.Containerfile"
   workflow_dispatch:
 
 env:
@@ -35,6 +38,7 @@ jobs:
         flavor: ["", "nvidia"]
         platform: ["amd64", "arm64"]
     runs-on: ${{ matrix.platform == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
+    if: ${{ !github.event.workflow_run || github.event.workflow_run.conclusion == 'success' }}
     outputs:
       image_tag: ${{ steps.build.outputs.image_tag }}
 
