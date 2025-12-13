@@ -112,7 +112,7 @@ KOJI_PACKAGES=(
 dnf -y install \
     "${STANDARD_PACKAGES[@]}"
 
-dnf -y install "${KOJI_PACKAGES[@]}"
+# dnf -y install "${KOJI_PACKAGES[@]}"
 
 # --- Configurations ---
 

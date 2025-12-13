@@ -294,6 +294,113 @@ RUN echo "#%PAM-1.0" > greetd.pam && \
     echo "session    include      system-auth" >> greetd.pam
 
 # -----------------------------------------------------------------------------
+# highway
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS highway-builder
+RUN dnf -y install cmake gcc-c++ git make
+WORKDIR /build
+RUN git clone https://github.com/google/highway.git .
+RUN cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DHWY_ENABLE_EXAMPLES=OFF -DHWY_ENABLE_TESTS=OFF
+RUN cmake --build build
+RUN cmake --install build --prefix /install/usr
+
+# -----------------------------------------------------------------------------
+# iniparser
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS iniparser-builder
+RUN dnf -y install gcc git make cmake
+WORKDIR /build
+RUN git clone https://github.com/ndevilla/iniparser.git .
+RUN cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+RUN cmake --build build
+RUN cmake --install build --prefix /install/usr
+
+# -----------------------------------------------------------------------------
+# utf8proc
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS utf8proc-builder
+RUN dnf -y install cmake gcc git make
+WORKDIR /build
+RUN git clone https://github.com/JuliaStrings/utf8proc.git .
+RUN cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+RUN cmake --build build
+RUN cmake --install build --prefix /install/usr
+
+# -----------------------------------------------------------------------------
+# tllist (Internal Helper for fcft/foot)
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS tllist-builder
+RUN dnf -y install epel-release && dnf -y --enablerepo=crb install meson ninja-build gcc git
+WORKDIR /build
+RUN git clone https://codeberg.org/dnkl/tllist.git .
+RUN meson setup build --prefix=/usr
+RUN DESTDIR=/install ninja -C build install
+
+# -----------------------------------------------------------------------------
+# fcft
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS fcft-builder
+RUN dnf -y install epel-release && \
+    dnf -y --enablerepo=crb install \
+    meson ninja-build gcc git \
+    fontconfig-devel freetype-devel pixman-devel harfbuzz-devel libpng-devel \
+    wayland-devel wayland-protocols-devel scdoc cmake check-devel
+WORKDIR /build
+# Copy deps
+COPY --from=tllist-builder /install /
+COPY --from=utf8proc-builder /install /
+RUN git clone https://codeberg.org/dnkl/fcft.git .
+RUN meson setup build --prefix=/usr -Ddocs=disabled && ninja -C build
+RUN DESTDIR=/install ninja -C build install
+
+# -----------------------------------------------------------------------------
+# foot
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS foot-builder
+RUN dnf -y install epel-release && \
+    dnf -y --enablerepo=crb install \
+    meson ninja-build gcc git \
+    fontconfig-devel freetype-devel pixman-devel harfbuzz-devel libpng-devel \
+    wayland-devel wayland-protocols-devel libxkbcommon-devel scdoc cmake check-devel systemd-devel
+WORKDIR /build
+# Copy deps
+COPY --from=tllist-builder /install /
+COPY --from=utf8proc-builder /install /
+COPY --from=fcft-builder /install /
+RUN git clone https://codeberg.org/dnkl/foot.git .
+RUN meson setup build --prefix=/usr -Ddocs=disabled -Dtests=disabled && ninja -C build
+RUN DESTDIR=/install ninja -C build install
+
+# -----------------------------------------------------------------------------
+# brightnessctl
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS brightnessctl-builder
+RUN dnf -y install gcc git make systemd-devel
+WORKDIR /build
+RUN git clone https://github.com/Hummer12007/brightnessctl.git .
+RUN ./configure --prefix=/usr
+RUN make
+RUN make install DESTDIR=/install
+
+# -----------------------------------------------------------------------------
+# cava
+# -----------------------------------------------------------------------------
+FROM quay.io/centos/centos:stream10 AS cava-builder
+RUN dnf -y install epel-release && \
+    dnf -y --enablerepo=crb install \
+    autoconf automake libtool gcc git make \
+    fftw-devel ncurses-devel pulseaudio-libs-devel pipewire-devel alsa-lib-devel SDL2-devel
+WORKDIR /build
+# Cava usually bundles iniparser logic or needs it. We built it, so let's provide it.
+COPY --from=iniparser-builder /install/usr/include /usr/include
+COPY --from=iniparser-builder /install/usr/lib64 /usr/lib64
+COPY --from=iniparser-builder /install/usr/lib /usr/lib
+RUN git clone https://github.com/karlstav/cava.git .
+RUN ./autogen.sh && ./configure --prefix=/usr
+RUN make
+RUN make install DESTDIR=/install
+
+# -----------------------------------------------------------------------------
 # Final Stage
 # -----------------------------------------------------------------------------
 FROM quay.io/centos-bootc/centos-bootc:stream10 AS final
@@ -331,6 +438,28 @@ COPY --from=greetd-builder /build/target/release/greetd /usr/bin/greetd
 COPY --from=greetd-builder /build/target/release/agreety /usr/bin/agreety
 COPY --from=greetd-builder /build/greetd.service /usr/lib/systemd/system/greetd.service
 COPY --from=greetd-builder /build/greetd.pam /etc/pam.d/greetd
+
+# highway
+COPY --from=highway-builder /install /
+
+# iniparser
+COPY --from=iniparser-builder /install /
+
+# utf8proc
+COPY --from=utf8proc-builder /install /
+
+# fcft
+COPY --from=fcft-builder /install /
+
+# foot
+COPY --from=foot-builder /install /
+
+# brightnessctl
+COPY --from=brightnessctl-builder /install /
+
+# cava
+COPY --from=cava-builder /install /
+
 
 ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
 
