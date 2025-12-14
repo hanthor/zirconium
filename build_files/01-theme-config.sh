@@ -4,76 +4,9 @@ set -xeuo pipefail
 
 install -d /usr/share/zirconium/
 
-# --- COPR Helper ---
-
-
-# --- Setup Repositories ---
-
-
-# --- Define Package Groups ---
-
-# COPR Packages
-
-
-# Standard Packages (CentOS/EPEL/Fedora)
-STANDARD_PACKAGES=(
-    chezmoi
-    ddcutil
-    fastfetch
-    flatpak
-    fpaste
-    fzf
-    git-core
-    gnome-keyring
-    gnome-keyring-pam
-    # greetd
-    # greetd-selinux
-    just
-    iniparser
-    libwayland-server
-    nautilus
-    orca
-    pipewire
-    steam-devices
-    webp-pixbuf-loader
-    wireplumber
-    wl-clipboard
-    xdg-desktop-portal-gnome
-    xdg-desktop-portal-gtk
-    xdg-user-dirs
-
-    # Fonts & Emoji
-    default-fonts-core-emoji
-    google-noto-color-emoji-fonts
-    google-noto-emoji-fonts
-    glibc-all-langpacks
-    default-fonts
-)
 
 
 
-# --- Install Packages ---
-
-
-
-dnf -y install \
-    "${STANDARD_PACKAGES[@]}"
-
-
-
-# --- Configurations ---
-
-# Greetd PAM fix
-# sed --sandbox -i -e '/gnome_keyring.so/ s/-auth/auth/ ; /gnome_keyring.so/ s/-session/session/' /etc/pam.d/greetd
-cat > /etc/pam.d/greetd <<EOF
-#%PAM-1.0
-auth       include      system-auth
-auth       optional     pam_gnome_keyring.so
-account    include      system-auth
-password   include      system-auth
-session    include      system-auth
-session    optional     pam_gnome_keyring.so auto_start
-EOF
 
 
 # Systemd Niri Wants
@@ -90,7 +23,7 @@ done
 cat /usr/lib/systemd/user/niri.service
 
 # Services
-systemctl enable greetd 
+ 
 systemctl enable firewalld
 
 # Copy Files
@@ -123,6 +56,8 @@ for unit in "${GLOBAL_ENABLES[@]}"; do systemctl enable --global "$unit"; done
 for unit in "${GLOBAL_PRESETS[@]}"; do systemctl preset --global "$unit"; done
 
 # Theme & Dotfiles
+git clone "https://github.com/noctalia-dev/noctalia-shell.git" /usr/share/zirconium/noctalia-shell
+cp /usr/share/zirconium/skel/Pictures/Wallpapers/mountains.png /usr/share/zirconium/noctalia-shell/Assets/Wallpaper/noctalia.png
 cp -rf /usr/share/zirconium/skel/* /etc/skel
 
 git clone "https://github.com/zirconium-dev/zdots.git" /usr/share/zirconium/zdots

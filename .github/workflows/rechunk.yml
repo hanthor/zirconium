@@ -1,0 +1,51 @@
+name: Rechunk OCI Image
+on:
+  workflow_dispatch:
+    inputs:
+      image_name:
+        description: 'Image name (e.g., zirconium)'
+        required: true
+        default: 'zirconium'
+      image_tag:
+        description: 'Image tag (e.g., latest)'
+        required: true
+        default: 'latest'
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  rechunk:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Rechunk Image
+        run: |
+          set -euxo pipefail
+          
+          FULL_IMAGE_NAME="${REGISTRY}/${{ github.repository_owner }}/${{ inputs.image_name }}:${{ inputs.image_tag }}"
+          TEMP_IMAGE_NAME="localhost/${{ inputs.image_name }}:${{ inputs.image_tag }}-rechunked"
+          
+          # Pull the source image
+          podman pull "${FULL_IMAGE_NAME}"
+          
+          # Run rechunk using the image itself as the tool source
+          # Rechunk to a temporary local tag first
+          podman run \
+            --rm \
+            --privileged \
+            --pull=never \
+            --security-opt=label=disable \
+            -v /var/lib/containers:/var/lib/containers \
+            --entrypoint=/usr/libexec/bootc-base-imagectl \
+            "${FULL_IMAGE_NAME}" \
+            rechunk "${FULL_IMAGE_NAME}" "${TEMP_IMAGE_NAME}"
+            
+          # Tag the rechunked image with the original name (overwriting it)
+          podman tag "${TEMP_IMAGE_NAME}" "${FULL_IMAGE_NAME}"
+
+          # Push the updated image
+          podman push "${FULL_IMAGE_NAME}"

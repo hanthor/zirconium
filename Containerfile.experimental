@@ -177,12 +177,51 @@ WORKDIR /build
 RUN git clone https://git.sr.ht/~kennylevinsen/greetd .
 RUN cargo build --release
 
-# Create PAM file
+# Create PAM file (Fedora Standard)
 RUN echo "#%PAM-1.0" > greetd.pam && \
-    echo "auth       include      system-auth" >> greetd.pam && \
-    echo "account    include      system-auth" >> greetd.pam && \
-    echo "password   include      system-auth" >> greetd.pam && \
-    echo "session    include      system-auth" >> greetd.pam
+    echo "auth       substack    system-auth" >> greetd.pam && \
+    echo "-auth      optional    pam_gnome_keyring.so" >> greetd.pam && \
+    echo "-auth      optional    pam_kwallet5.so" >> greetd.pam && \
+    echo "-auth      optional    pam_kwallet.so" >> greetd.pam && \
+    echo "auth       include     postlogin" >> greetd.pam && \
+    echo "" >> greetd.pam && \
+    echo "account    required    pam_sepermit.so" >> greetd.pam && \
+    echo "account    required    pam_nologin.so" >> greetd.pam && \
+    echo "account    include     system-auth" >> greetd.pam && \
+    echo "" >> greetd.pam && \
+    echo "password   include     system-auth" >> greetd.pam && \
+    echo "" >> greetd.pam && \
+    echo "session    required    pam_selinux.so close" >> greetd.pam && \
+    echo "session    required    pam_loginuid.so" >> greetd.pam && \
+    echo "session    required    pam_selinux.so open" >> greetd.pam && \
+    echo "session    optional    pam_keyinit.so force revoke" >> greetd.pam && \
+    echo "session    required    pam_namespace.so" >> greetd.pam && \
+    echo "session    include     system-auth" >> greetd.pam && \
+    echo "-session   optional    pam_gnome_keyring.so auto_start" >> greetd.pam && \
+    echo "-session   optional    pam_kwallet5.so auto_start" >> greetd.pam && \
+    echo "-session   optional    pam_kwallet.so auto_start" >> greetd.pam && \
+    echo "session    include     postlogin" >> greetd.pam
+
+# Create sysusers file
+RUN echo 'u greetd - "greetd daemon" /var/lib/greetd' > greetd.conf
+
+# Build SELinux policies from source
+RUN dnf -y install \
+    make \
+    bzip2 \
+    selinux-policy-devel \
+    /usr/share/selinux/devel/Makefile && \
+    mkdir /selinux && \
+    cd /selinux && \
+    echo "policy_module(greetd, 1.0)" > greetd.te && \
+    echo "/etc/greetd(/.*)?			gen_context(system_u:object_r:xdm_etc_t,s0)" > greetd.fc && \
+    echo "/usr/bin/greetd			--	gen_context(system_u:object_r:xdm_exec_t,s0)" >> greetd.fc && \
+    echo "/var/lib/greetd(/.*)?			gen_context(system_u:object_r:xdm_var_lib_t,s0)" >> greetd.fc && \
+    echo "/var/run/greetd[^/]*\.sock	-s	gen_context(system_u:object_r:xdm_var_run_t,s0)" >> greetd.fc && \
+    echo "/var/run/greetd\.run		--	gen_context(system_u:object_r:xdm_var_run_t,s0)" >> greetd.fc && \
+    make -f /usr/share/selinux/devel/Makefile greetd.pp && \
+    bzip2 -9 greetd.pp && \
+    install -D -m 644 greetd.pp.bz2 /usr/share/selinux/packages/targeted/greetd.pp.bz2
 
 # -----------------------------------------------------------------------------
 # highway
@@ -300,6 +339,8 @@ COPY --from=greetd-builder /build/target/release/greetd /usr/bin/greetd
 COPY --from=greetd-builder /build/target/release/agreety /usr/bin/agreety
 COPY --from=greetd-builder /build/greetd.service /usr/lib/systemd/system/greetd.service
 COPY --from=greetd-builder /build/greetd.pam /etc/pam.d/greetd
+COPY --from=greetd-builder /build/greetd.conf /usr/lib/sysusers.d/greetd.conf
+COPY --from=greetd-builder /usr/share/selinux/packages /usr/share/selinux/packages
 
 # highway
 COPY --from=highway-builder /install /
@@ -325,12 +366,22 @@ ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/build/00-base.sh
+    /ctx/build/00-base-install.sh
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/build/01-theme.sh
+    /ctx/build/01-theme-install.sh
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=tmpfs,dst=/var \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/build/00-base-config.sh
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=tmpfs,dst=/var \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/build/01-theme-config.sh
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
@@ -346,4 +397,4 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
 # This is handy for VM testing
 # RUN usermod -p "$(echo "changeme" | mkpasswd -s)" root
 
-RUN rm -rf /var/* && bootc container lint
+RUN dnf clean all && rm -rf /var/cache/dnf && bootc container lint

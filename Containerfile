@@ -43,12 +43,22 @@ ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/build/00-base.sh
+    /ctx/build/00-base-install.sh
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/build/01-theme.sh
+    /ctx/build/01-theme-install.sh
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=tmpfs,dst=/var \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/build/00-base-config.sh
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=tmpfs,dst=/var \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/build/01-theme-config.sh
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
@@ -64,4 +74,4 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
 # This is handy for VM testing
 # RUN usermod -p "$(echo "changeme" | mkpasswd -s)" root
 
-RUN rm -rf /var/* && bootc container lint
+RUN dnf clean all && rm -rf /var/cache/dnf && bootc container lint
