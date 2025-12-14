@@ -40,6 +40,18 @@ RUN echo "#%PAM-1.0" > greetd.pam && \
     echo "-session   optional    pam_kwallet.so auto_start" >> greetd.pam && \
     echo "session    include     postlogin" >> greetd.pam
 
+# Create greetd-greeter PAM file (Copy of greetd for now)
+RUN cp greetd.pam greetd-greeter.pam
+
+# Create niri session file
+RUN mkdir -p /usr/share/wayland-sessions && \
+    echo "[Desktop Entry]" > niri.desktop && \
+    echo "Name=Niri" >> niri.desktop && \
+    echo "Comment=A scrollable-tiling Wayland compositor" >> niri.desktop && \
+    echo "Exec=/usr/bin/niri-session" >> niri.desktop && \
+    echo "Type=Application" >> niri.desktop && \
+    echo "DesktopNames=niri" >> niri.desktop
+
 # Create sysusers file
 RUN echo 'u greetd - "greetd daemon" /var/lib/greetd' > greetd.conf
 
@@ -66,5 +78,7 @@ COPY --from=builder /build/target/release/greetd /usr/bin/greetd
 COPY --from=builder /build/target/release/agreety /usr/bin/agreety
 COPY --from=builder /build/greetd.service /usr/lib/systemd/system/greetd.service
 COPY --from=builder /build/greetd.pam /etc/pam.d/greetd
+COPY --from=builder /build/greetd-greeter.pam /etc/pam.d/greetd-greeter
+COPY --from=builder /build/niri.desktop /usr/share/wayland-sessions/niri.desktop
 COPY --from=builder /build/greetd.conf /usr/lib/sysusers.d/greetd.conf
 COPY --from=builder /usr/share/selinux/packages /usr/share/selinux/packages
