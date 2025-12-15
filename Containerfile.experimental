@@ -51,6 +51,15 @@ RUN git clone https://github.com/YaLTeR/niri.git .
 # Build niri
 RUN cargo build --release
 
+# Create niri session file
+RUN mkdir -p /resources && \
+    echo "[Desktop Entry]" > /resources/niri.desktop && \
+    echo "Name=Niri" >> /resources/niri.desktop && \
+    echo "Comment=A scrollable-tiling Wayland compositor" >> /resources/niri.desktop && \
+    echo "Exec=/usr/bin/niri-session" >> /resources/niri.desktop && \
+    echo "Type=Application" >> /resources/niri.desktop && \
+    echo "DesktopNames=niri" >> /resources/niri.desktop
+
 # -----------------------------------------------------------------------------
 # dms
 # -----------------------------------------------------------------------------
@@ -202,6 +211,9 @@ RUN echo "#%PAM-1.0" > greetd.pam && \
     echo "-session   optional    pam_kwallet.so auto_start" >> greetd.pam && \
     echo "session    include     postlogin" >> greetd.pam
 
+# Create greetd-greeter PAM file (Copy of greetd for now)
+RUN cp greetd.pam greetd-greeter.pam
+
 # Create sysusers file
 RUN echo 'u greetd - "greetd daemon" /var/lib/greetd' > greetd.conf
 
@@ -306,19 +318,27 @@ FROM quay.io/centos-bootc/centos-bootc:stream10 AS final
 
 ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
 
-# Copy artifacts from builders
+# niri
 COPY --from=niri-builder /build/target/release/niri /usr/bin/niri
 COPY --from=niri-builder /build/resources/niri.service /usr/lib/systemd/user/niri.service
 COPY --from=niri-builder /build/resources/niri-session /usr/bin/niri-session
+COPY --from=niri-builder /resources/niri.desktop /usr/share/wayland-sessions/niri.desktop
 
 # dms
 COPY --from=dms-builder /build/core/dms /usr/bin/dms
 COPY --from=dms-builder /build/quickshell /usr/share/dms/shell
 COPY --from=dms-builder /build/quickshell/Modules/Greetd /usr/share/dms/greeter
 
+# dgop
 COPY --from=dgop-builder /build/dgop /usr/bin/dgop
+
+# cliphist
 COPY --from=cliphist-builder /build/cliphist /usr/bin/cliphist
+
+# matugen
 COPY --from=matugen-builder /build/target/release/matugen /usr/bin/matugen
+
+# wlsunset
 COPY --from=wlsunset-builder /build/build/wlsunset /usr/bin/wlsunset
 
 # glycin
@@ -330,8 +350,10 @@ COPY --from=libjxl-builder /install /
 # quickshell
 COPY --from=quickshell-builder /install /
 
+# tuigreet
 COPY --from=tuigreet-builder /build/target/release/tuigreet /usr/bin/tuigreet
 
+# xwayland-satellite
 COPY --from=xwayland-satellite-builder /build/target/release/xwayland-satellite /usr/bin/xwayland-satellite
 
 # greetd
@@ -339,6 +361,7 @@ COPY --from=greetd-builder /build/target/release/greetd /usr/bin/greetd
 COPY --from=greetd-builder /build/target/release/agreety /usr/bin/agreety
 COPY --from=greetd-builder /build/greetd.service /usr/lib/systemd/system/greetd.service
 COPY --from=greetd-builder /build/greetd.pam /etc/pam.d/greetd
+COPY --from=greetd-builder /build/greetd-greeter.pam /etc/pam.d/greetd-greeter
 COPY --from=greetd-builder /build/greetd.conf /usr/lib/sysusers.d/greetd.conf
 COPY --from=greetd-builder /usr/share/selinux/packages /usr/share/selinux/packages
 
@@ -363,15 +386,15 @@ COPY --from=cava-builder /install /
 
 ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
 
-RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
-    --mount=type=tmpfs,dst=/var \
+COPY build_files/00-base-install.sh /tmp/00-base-install.sh
+RUN --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/build/00-base-install.sh
+    /tmp/00-base-install.sh
 
-RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
-    --mount=type=tmpfs,dst=/var \
+COPY build_files/01-theme-install.sh /tmp/01-theme-install.sh
+RUN --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/build/01-theme-install.sh
+    /tmp/01-theme-install.sh
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
@@ -395,6 +418,12 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     /ctx/build/99-cleanup.sh
 
 # This is handy for VM testing
-# RUN usermod -p "$(echo "changeme" | mkpasswd -s)" root
+RUN echo "root:changeme" | chpasswd
+
+# Add build timestamp for verification
+RUN date > /etc/build_timestamp
+
+# Restore SELinux labels to fix execution issues
+RUN restorecon -R -v /usr /etc /var || true
 
 RUN dnf clean all && rm -rf /var/cache/dnf && bootc container lint

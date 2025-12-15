@@ -27,6 +27,7 @@ ARG BUILD_FLAVOR="${BUILD_FLAVOR:-}"
 COPY --from=niri /usr/bin/niri /usr/bin/niri
 COPY --from=niri /usr/lib/systemd/user/niri.service /usr/lib/systemd/user/niri.service
 COPY --from=niri /usr/bin/niri-session /usr/bin/niri-session
+COPY --from=niri /usr/share/wayland-sessions/niri.desktop /usr/share/wayland-sessions/niri.desktop
 COPY --from=dms / /
 COPY --from=dgop /usr/bin/dgop /usr/bin/dgop
 COPY --from=cliphist /usr/bin/cliphist /usr/bin/cliphist

@@ -32,8 +32,6 @@ bootc *ARGS:
         --rm --privileged --pid=host \
         -it \
         -v /sys/fs/selinux:/sys/fs/selinux \
-        -v /etc/containers:/etc/containers:Z \
-        -v /var/lib/containers:/var/lib/containers:Z \
         -v /dev:/dev \
         -v "{{base_dir}}:/data" \
         --security-opt label=type:unconfined_t \
@@ -110,10 +108,12 @@ quick-iterate:
 
 quick-iterate-experimental:
     #!/usr/bin/env bash
+    sudo podman ps -q --filter ancestor=docker.io/qemux/qemu | xargs -r sudo podman kill
     podman build --jobs $(nproc) -f Containerfile.experimental -t zirconium:latest . --build-arg BUILD_FLAVOR="${BUILD_FLAVOR:-}" 
     just rootful
     just rechunk
     just disk-image
+    just run-vm
 
 rechunk $src_image="zirconium" $src_tag="latest" $dst_tag=(src_tag + "-rechunked"):
     #!/usr/bin/env bash
