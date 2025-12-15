@@ -19,10 +19,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: ["amd64"]
+        platform: ["amd64", "arm64"]
+        flavor: ["", "-nvidia"]
     runs-on: ${{ matrix.platform == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
-    outputs:
-      image_tag: ${{ steps.build.outputs.image_tag }}
 
     steps:
       - name: Checkout
@@ -39,7 +38,7 @@ jobs:
         uses: osbuild/bootc-image-builder-action@main
         with:
           config-file: ./iso.toml
-          image: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
+          image: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}${{ matrix.flavor }}:latest
           types: anaconda-iso
           rootfs: btrfs
           additional-args: --use-librepo=True
@@ -67,7 +66,11 @@ jobs:
           RCLONE_CONFIG_S3_TYPE: s3
           S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
           SOURCE_DIR: ${{ steps.build-iso.outputs.output-directory }}
+          FLAVOR: ${{ matrix.flavor }}
+          PLATFORM: ${{ matrix.platform }}
+          IMAGE_NAME: "${{ github.event.repository.name }}"
         run: |
           sudo apt update -y
           sudo apt install -y rclone
+          mv "${SOURCE_DIR}"/iso/*.iso "${SOURCE_DIR}/${IMAGE_NAME}${FLAVOR}-${PLATFORM}"
           rclone copy "${SOURCE_DIR}" "S3:${S3_BUCKET_NAME}"
