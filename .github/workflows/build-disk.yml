@@ -45,6 +45,7 @@ jobs:
           additional-args: --use-librepo=True
 
       - name: Upload Artifact
+        if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.platform }}
@@ -55,7 +56,7 @@ jobs:
           overwrite: true
 
       - name: Upload to S3
-        if: inputs.upload-to-s3 == true && github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         shell: bash
         env:
           RCLONE_CONFIG_S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
