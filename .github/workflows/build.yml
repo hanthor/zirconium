@@ -120,8 +120,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           # Thank you Bri! :3 @b-
-          curl --retry 3 -H "Authorization: Bearer ${GITHUB_TOKEN}" -fsSLo "/usr/bin/cosign" "https://github.com/sigstore/cosign/releases/download/v2.6.1/cosign-linux-amd64"
-          chmod +x /usr/bin/cosign
+          sudo curl --retry 3 -H "Authorization: Bearer ${GITHUB_TOKEN}" -fsSLo "/usr/bin/cosign" "https://github.com/sigstore/cosign/releases/download/v2.6.1/cosign-linux-amd64"
+          sudo chmod +x /usr/bin/cosign
 
       - name: Sign Image
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
