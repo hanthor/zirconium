@@ -118,9 +118,10 @@ jobs:
       - name: Install old cosign
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          PLATFORM: ${{ matrix.platform }}
         run: |
           # Thank you Bri! :3 @b-
-          sudo curl --retry 3 -H "Authorization: Bearer ${GITHUB_TOKEN}" -fsSLo "/usr/bin/cosign" "https://github.com/sigstore/cosign/releases/download/v2.6.1/cosign-linux-amd64"
+          sudo curl --retry 3 -H "Authorization: Bearer ${GITHUB_TOKEN}" -fsSLo "/usr/bin/cosign" "https://github.com/sigstore/cosign/releases/download/v2.6.1/cosign-linux-${PLATFORM}"
           sudo chmod +x /usr/bin/cosign
 
       - name: Sign Image
