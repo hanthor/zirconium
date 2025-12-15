@@ -12,12 +12,14 @@ jobs:
   build_release:
     name: Build and release disk image
     permissions:
-      contents: write
+      contents: read
+      packages: read
+      id-token: write
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        platform: ["amd64", "arm64"]
+        platform: ["amd64"]
     runs-on: ${{ matrix.platform == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     outputs:
       image_tag: ${{ steps.build.outputs.image_tag }}
@@ -32,7 +34,7 @@ jobs:
         with:
           remove-codeql: true
 
-      - name: Build disk image
+      - name: Build ISO
         id: build-iso
         uses: osbuild/bootc-image-builder-action@main
         with:
@@ -40,6 +42,7 @@ jobs:
           image: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
           types: anaconda-iso
           rootfs: btrfs
+          additional-args: --use-librepo=True
 
       - name: Upload Artifact
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
@@ -47,14 +50,23 @@ jobs:
           name: ${{ github.event.repository.name }}-${{ matrix.platform }}
           path: ${{ steps.build-iso.outputs.output-directory }}
           if-no-files-found: error
+          retention-days: 0
+          compression-level: 0
+          overwrite: true
 
-      - name: Upload Release Artifact
-        if: github.event_name != 'pull_request'
+      - name: Upload to S3
+        if: inputs.upload-to-s3 == true && github.event_name != 'pull_request'
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-          OUTPUT_DIRECTORY: ${{ steps.build-iso.outputs.output-directory }}
-          PLATFORM: ${{ matrix.platform }}
-          IMAGE_NAME: "${{ github.event.repository.name }}"
+          RCLONE_CONFIG_S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+          RCLONE_CONFIG_S3_PROVIDER: ${{ secrets.S3_PROVIDER }}
+          RCLONE_CONFIG_S3_REGION: ${{ secrets.S3_REGION }}
+          RCLONE_CONFIG_S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_S3_TYPE: s3
+          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+          SOURCE_DIR: ${{ steps.build-iso.outputs.output-directory }}
         run: |
-          sudo mv "$(find "${OUTPUT_DIRECTORY}" -iname "*.iso"  | head -n 1)" "./${IMAGE_NAME}-${PLATFORM}.iso"
-          gh release upload --clobber rolling ./*.iso
+          sudo apt update -y
+          sudo apt install -y rclone
+          rclone copy "${SOURCE_DIR}" "S3:${S3_BUCKET_NAME}"
