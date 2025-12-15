@@ -72,5 +72,6 @@ jobs:
         run: |
           sudo apt update -y
           sudo apt install -y rclone
-          mv "${SOURCE_DIR}"/iso/*.iso "${SOURCE_DIR}/${IMAGE_NAME}${FLAVOR}-${PLATFORM}"
+          find "${SOURCE_DIR}"
+          mv "${SOURCE_DIR}"/*/*.iso "${SOURCE_DIR}/${IMAGE_NAME}${FLAVOR}-${PLATFORM}"
           rclone copy "${SOURCE_DIR}" "S3:${S3_BUCKET_NAME}"
