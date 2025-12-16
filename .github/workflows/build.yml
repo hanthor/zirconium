@@ -64,14 +64,19 @@ jobs:
       - name: Rechunk Image
         run: sudo podman run --rm --privileged -v /var/lib/containers:/var/lib/containers --entrypoint /usr/libexec/bootc-base-imagectl "quay.io/fedora/fedora-bootc:latest" rechunk --max-layers 80 "localhost/${IMAGE_NAME}:${DEFAULT_TAG}" "localhost/${IMAGE_NAME}:${DEFAULT_TAG}"
 
+      # FIX this please
+      - name: Load into rootless storage
+        run: |
+          sudo podman image scp "root@localhost::localhost/${IMAGE_NAME}:${DEFAULT_TAG}" "${USER}@localhost::"
+
       - name: Login to GitHub Container Registry
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LOGIN_USER: ${{ github.actor }}
         run: |
-          echo "${GITHUB_TOKEN}" | sudo podman login -u "${LOGIN_USER}" --password-stdin "ghcr.io"
-          echo "${GITHUB_TOKEN}" | sudo docker login -u "${LOGIN_USER}" --password-stdin "ghcr.io"
+          echo "${GITHUB_TOKEN}" | podman login -u "${LOGIN_USER}" --password-stdin "ghcr.io"
+          echo "${GITHUB_TOKEN}" | docker login -u "${LOGIN_USER}" --password-stdin "ghcr.io"
 
       - name: Push to GHCR
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
@@ -86,7 +91,7 @@ jobs:
           set -x
 
           for i in $(seq "${MAX_RETRIES}"); do
-            sudo podman push --digestfile=/tmp/digestfile "localhost/${IMAGE_NAME}:${DEFAULT_TAG}" "${IMAGE_REGISTRY}/${IMAGE_NAME}:${DEFAULT_TAG}-${PLATFORM}" && break || sleep $((5 * i));
+            podman push --digestfile=/tmp/digestfile "localhost/${IMAGE_NAME}:${DEFAULT_TAG}" "${IMAGE_REGISTRY}/${IMAGE_NAME}:${DEFAULT_TAG}-${PLATFORM}" && break || sleep $((5 * i));
           done
           echo "remote_image_digest=$(< /tmp/digestfile)" | tee "${GITHUB_OUTPUT}"
 
@@ -97,8 +102,8 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
         run: |
           # Thank you Bri! :3 @b-
-          sudo curl --retry 3 -H "Authorization: Bearer ${GITHUB_TOKEN}" -fsSLo "/usr/bin/cosign" "https://github.com/sigstore/cosign/releases/download/v2.6.1/cosign-linux-${PLATFORM}"
-          sudo chmod +x /usr/bin/cosign
+          curl --retry 3 -H "Authorization: Bearer ${GITHUB_TOKEN}" -fsSLo "/usr/bin/cosign" "https://github.com/sigstore/cosign/releases/download/v2.6.1/cosign-linux-${PLATFORM}"
+          chmod +x /tmp/cosign
 
       - name: Sign Image
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
@@ -106,7 +111,7 @@ jobs:
           REMOTE_IMAGE_DIGEST: ${{ steps.push.outputs.remote_image_digest }}
           COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
-        run: sudo cosign sign -y --key env://COSIGN_PRIVATE_KEY "${IMAGE_REGISTRY}/${IMAGE_NAME}@${REMOTE_IMAGE_DIGEST}"
+        run: /tmp/cosign sign -y --key env://COSIGN_PRIVATE_KEY "${IMAGE_REGISTRY}/${IMAGE_NAME}@${REMOTE_IMAGE_DIGEST}"
 
       - name: Create Job Outputs
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
