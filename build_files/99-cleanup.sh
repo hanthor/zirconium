@@ -37,6 +37,8 @@ systemctl enable flatpak-add-flathub-repos.service
 rm -rf /usr/share/doc
 rm -rf /usr/bin/chsh # footgun
 
+systemctl enable rechunker-group-fix.service
+
 KERNEL_VERSION="$(find "/usr/lib/modules" -maxdepth 1 -type d ! -path "/usr/lib/modules" -exec basename '{}' ';' | sort | tail -n 1)"
 export DRACUT_NO_XATTR=1
 dracut --no-hostonly --kver "$KERNEL_VERSION" --reproducible --zstd -v --add ostree -f "/usr/lib/modules/$KERNEL_VERSION/initramfs.img"
