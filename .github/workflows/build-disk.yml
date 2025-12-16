@@ -1,9 +1,6 @@
 ---
 name: Build disk image
 on:
-  pull_request:
-    branches:
-      - main
   schedule:
     - cron: "0 1 * * TUE"
   workflow_dispatch:
