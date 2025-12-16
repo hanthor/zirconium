@@ -67,6 +67,7 @@ jobs:
       # FIX this please
       - name: Load into rootless storage
         run: |
+          sudo apt install -y systemd-container
           sudo podman image scp "root@localhost::localhost/${IMAGE_NAME}:${DEFAULT_TAG}" "${USER}@localhost::"
 
       - name: Login to GitHub Container Registry
