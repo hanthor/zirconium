@@ -4,7 +4,7 @@ FROM scratch AS ctx
 
 COPY build_files /build
 COPY system_files /files
-COPY --from=ghcr.io/projectbluefin/brew:latest /system_files /files
+COPY --from=ghcr.io/ublue-os/brew:latest /system_files /files
 COPY cosign.pub /files/etc/pki/containers/zirconium.pub
 
 FROM quay.io/fedora/fedora-bootc:43
