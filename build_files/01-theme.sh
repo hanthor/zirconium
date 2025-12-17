@@ -55,7 +55,6 @@ dnf -y install \
     orca \
     pipewire \
     steam-devices \
-    tuigreet \
     udiskie \
     webp-pixbuf-loader \
     wireplumber \
@@ -101,6 +100,7 @@ dnf install -y \
 
 cp -avf "/ctx/files"/. /
 
+systemctl enable brew-setup.service
 systemctl enable flatpak-preinstall.service
 systemctl enable --global chezmoi-init.service
 systemctl enable --global foot.service
