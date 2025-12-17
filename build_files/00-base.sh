@@ -76,7 +76,6 @@ dnf -y install \
   tuned-ppd \
   unzip \
   uxplay \
-  virtualbox-guest-additions \
   whois \
   wireguard-tools \
   zram-generator-defaults
