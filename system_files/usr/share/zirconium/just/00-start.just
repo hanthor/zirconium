@@ -63,3 +63,6 @@ reset-niri:
 
 update-greeter:
     dms greeter sync
+
+update:
+    sudo uupd
