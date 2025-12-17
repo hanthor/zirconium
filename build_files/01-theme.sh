@@ -52,8 +52,10 @@ dnf -y install \
     input-remapper \
     just \
     nautilus \
+    openssh-askpass \
     orca \
     pipewire \
+    playerctl \
     steam-devices \
     udiskie \
     webp-pixbuf-loader \
