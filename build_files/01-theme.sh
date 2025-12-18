@@ -30,7 +30,8 @@ dnf -y \
 dnf -y copr enable zirconium/packages
 dnf -y copr disable zirconium/packages
 dnf -y --enablerepo copr:copr.fedorainfracloud.org:zirconium:packages install \
-    matugen
+    matugen \
+    xwayland-satellite # specifically just for version 0.8 (track RHBZ#2419373 for upstream version bump)
 
 dnf -y install \
     brightnessctl \
@@ -64,8 +65,7 @@ dnf -y install \
     wlsunset \
     xdg-desktop-portal-gnome \
     xdg-desktop-portal-gtk \
-    xdg-user-dirs \
-    xwayland-satellite
+    xdg-user-dirs
 
 dnf install -y --setopt=install_weak_deps=False \
     kf6-kirigami \
