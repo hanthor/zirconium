@@ -9,4 +9,4 @@ ExecStart=chezmoi apply -S /usr/share/zirconium/zdots --config %h/.config/zircon
 Type=oneshot
 
 [Install]
-WantedBy=default.target
+WantedBy=graphical-session-pre.target
