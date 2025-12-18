@@ -7,7 +7,7 @@ Zirconium is an opinionated fedora-bootc image that makes use of Niri and DankMa
 Zirconium is built primarily for container-focused development and day-to-day usage, however gaming is still more than possible. For a fully gaming-focused experience, use Bazzite.
 
 ## How do I use this?
-The best way to install Zirconium is to download our newly created ISO! Pick your flavor:
+The best way to install Zirconium is to download our ISOs! Pick your flavor:
 
 - AMD64
 - - **[AMD/Intel GPUs](https://isos.zirconium.gay/zirconium-isos/zirconium-amd64.iso)** ([Checksum](https://isos.zirconium.gay/zirconium-isos/zirconium-amd64.iso-CHECKSUM))
