@@ -30,7 +30,7 @@ If you also have NVIDIA GPU (GTX 16xx or RTX series), run this command instead:
 sudo bootc switch ghcr.io/zirconium-dev/zirconium-nvidia:latest
 ```
 
-If you're having issues, ask for help in our [Discord](https://discord.gg/mmgNQpxwhW).
+[Join our Discord](https://discord.gg/mmgNQpxwhW)!
 
 ## Can I still customize Niri/DankMaterialShell?
 Yes! We do update our dotfiles in OS updates, however you're not forced to use them. We're hoping at some point to be able to make the dotfile update process less destructive. 
