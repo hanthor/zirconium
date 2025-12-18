@@ -51,6 +51,35 @@ jobs:
           compression-level: 0
           overwrite: true
 
+      - name: Brand ISOs
+        env:
+          FLAVOR: ${{ matrix.flavor }}
+          PLATFORM: ${{ matrix.platform }}
+          IMAGE_NAME: "${{ github.event.repository.name }}"
+          SOURCE_DIR: ${{ steps.build-iso.outputs.output-directory }}
+        run: |
+          sudo mv "${SOURCE_DIR}"/*/*.iso "${SOURCE_DIR}/zirc-unbranded.iso"
+          sudo podman rmi -a -f
+          podman rmi -a -f
+          sudo podman run \
+            --rm \
+            -it \
+            --pull=newer \
+            --privileged \
+            -v /dev:/dev \
+            -v "${SOURCE_DIR}:/output" \
+            -v ./iso:/iso \
+            registry.fedoraproject.org/fedora:latest \
+            bash -c 'dnf install -y lorax \
+            && mkdir /images \
+            && cd /iso/product && find . | cpio -c -o | gzip -9cv > /images/product.img && cd / \
+            && mkksiso \
+                --add /images \
+                --volid zirconium-boot \
+                /output/zirc-unbranded.iso \
+                /output/zirc.iso'
+          sudo mv "${SOURCE_DIR}"/zirc.iso "${SOURCE_DIR}/${IMAGE_NAME}${FLAVOR}-${PLATFORM}.iso"
+
       - name: Upload to S3
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         shell: bash
@@ -63,12 +92,7 @@ jobs:
           RCLONE_CONFIG_S3_TYPE: s3
           S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
           SOURCE_DIR: ${{ steps.build-iso.outputs.output-directory }}
-          FLAVOR: ${{ matrix.flavor }}
-          PLATFORM: ${{ matrix.platform }}
-          IMAGE_NAME: "${{ github.event.repository.name }}"
         run: |
           sudo apt update -y
           sudo apt install -y rclone
-          find "${SOURCE_DIR}"
-          sudo mv "${SOURCE_DIR}"/*/*.iso "${SOURCE_DIR}/${IMAGE_NAME}${FLAVOR}-${PLATFORM}.iso"
           rclone copy "${SOURCE_DIR}"/*.iso "S3:${S3_BUCKET_NAME}"
