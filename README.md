@@ -7,7 +7,16 @@ Zirconium is an opinionated fedora-bootc image that makes use of Niri and DankMa
 Zirconium is built primarily for container-focused development and day-to-day usage, however gaming is still more than possible. For a fully gaming-focused experience, use Bazzite.
 
 ## How do I use this?
-Currently, the best way to install Zirconium is to rebase from an existing Fedora Atomic install. We recommend [Bluefin](https://projectbluefin.io/), but it doesn't really matter.
+The best way to install Zirconium is to download our newly created ISO! Pick your flavor:
+
+- AMD64
+- - **[AMD/Intel GPUs](https://isos.zirconium.gay/zirconium-isos/zirconium-amd64.iso)** ([Checksum](https://isos.zirconium.gay/zirconium-isos/zirconium-amd64.iso-CHECKSUM))
+- - **[NVIDIA GPUs (GTX 16xx and RTX series)](https://isos.zirconium.gay/zirconium-isos/zirconium-nvidia-amd64.iso)** ([Checksum](https://isos.zirconium.gay/zirconium-isos/zirconium-nvidia-amd64.iso-CHECKSUM))
+- ARM64
+- - **[AMD/Intel GPUs](https://isos.zirconium.gay/zirconium-isos/zirconium-arm64.iso)** ([Checksum](https://isos.zirconium.gay/zirconium-isos/zirconium-arm64.iso-CHECKSUM))
+- - **[NVIDIA GPUs (GTX 16xx and RTX series)](https://isos.zirconium.gay/zirconium-isos/zirconium-nvidia-arm64.iso)** ([Checksum](https://isos.zirconium.gay/zirconium-isos/zirconium-nvidia-arm64.iso-CHECKSUM))
+
+Alternatively, you can install Zirconium by doing a rebase from an existing Fedora Atomic install. We recommend [Bluefin](https://projectbluefin.io/), but it doesn't really matter.
 
 Once you have some flavour of Fedora Atomic installed, run this command:
 
@@ -21,7 +30,7 @@ If you also have NVIDIA GPU (GTX 16xx or RTX series), run this command instead:
 sudo bootc switch ghcr.io/zirconium-dev/zirconium-nvidia:latest
 ```
 
-If you're having issues, ask for help in our [Discord](https://discord.gg/mmgNQpxwhW). We're working on ISOs.
+If you're having issues, ask for help in our [Discord](https://discord.gg/mmgNQpxwhW).
 
 ## Can I still customize Niri/DankMaterialShell?
 Yes! We do update our dotfiles in OS updates, however you're not forced to use them. We're hoping at some point to be able to make the dotfile update process less destructive. 
