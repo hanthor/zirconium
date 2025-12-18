@@ -79,6 +79,7 @@ jobs:
                 /output/zirc-unbranded.iso \
                 /output/zirc.iso'
           sudo mv "${SOURCE_DIR}"/zirc.iso "${SOURCE_DIR}/${IMAGE_NAME}${FLAVOR}-${PLATFORM}.iso"
+          sha256sum "${IMAGE_NAME}${FLAVOR}-${PLATFORM}.iso" | sudo tee "${SOURCE_DIR}/${IMAGE_NAME}${FLAVOR}-${PLATFORM}.iso-CHECKSUM"
           sudo rm -f "${SOURCE_DIR}/zirc-unbranded.iso"
 
       - name: Upload to S3
@@ -97,3 +98,4 @@ jobs:
           sudo apt update -y
           sudo apt install -y rclone
           rclone copy "${SOURCE_DIR}"/*.iso "S3:${S3_BUCKET_NAME}"
+          rclone copy "${SOURCE_DIR}"/*.iso-CHECKSUM "S3:${S3_BUCKET_NAME}"
