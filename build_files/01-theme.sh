@@ -4,6 +4,12 @@ set -xeuo pipefail
 
 install -d /usr/share/zirconium/
 
+dnf -y copr enable zirconium/packages
+dnf -y copr disable zirconium/packages
+dnf -y --enablerepo copr:copr.fedorainfracloud.org:zirconium:packages install \
+    matugen \
+    xwayland-satellite # specifically just for version 0.8 (track RHBZ#2419373 for upstream version bump)
+
 dnf -y copr enable yalter/niri-git
 dnf -y copr disable yalter/niri-git
 echo "priority=1" | tee -a /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:yalter:niri-git.repo
@@ -26,12 +32,6 @@ dnf -y \
     dms-greeter \
     dgop \
     dsearch
-
-dnf -y copr enable zirconium/packages
-dnf -y copr disable zirconium/packages
-dnf -y --enablerepo copr:copr.fedorainfracloud.org:zirconium:packages install \
-    matugen \
-    xwayland-satellite # specifically just for version 0.8 (track RHBZ#2419373 for upstream version bump)
 
 dnf -y install \
     brightnessctl \
