@@ -94,7 +94,6 @@ dnf -y install \
   system-config-printer-udev \
   systemd-container \
   systemd-oomd-defaults \
-  thermald \
   tiwilink-firmware \
   tuned \
   tuned-ppd \
@@ -144,5 +143,7 @@ if [ "$(rpm -E "%{fedora}")" == 43 ] ; then
 fi
 
 if [ "$(arch)" != "aarch64" ] ; then
-  dnf install -y virtualbox-guest-additions
+  dnf install -y \
+    virtualbox-guest-additions \
+    thermald
 fi
