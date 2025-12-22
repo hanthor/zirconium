@@ -76,6 +76,7 @@ jobs:
             && mkksiso \
                 --add /images \
                 --volid zirconium-boot \
+                --replace "vmlinuz" "vmlinuz inst.resolution=1280x800" \
                 /output/zirc-unbranded.iso \
                 /output/zirc.iso'
           sudo mv "${SOURCE_DIR}"/zirc.iso "${SOURCE_DIR}/${IMAGE_NAME}${FLAVOR}-${PLATFORM}.iso"
