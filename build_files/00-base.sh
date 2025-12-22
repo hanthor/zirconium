@@ -101,7 +101,6 @@ dnf -y install \
   unzip \
   usb_modeswitch \
   uxplay \
-  virtualbox-guest-additions \
   vpnc \
   whois \
   wireguard-tools \
@@ -142,4 +141,8 @@ if [ "$(rpm -E "%{fedora}")" == 43 ] ; then
   dnf -y --repo=copr:copr.fedorainfracloud.org:ublue-os:flatpak-test swap flatpak-libs flatpak-libs
   dnf -y --repo=copr:copr.fedorainfracloud.org:ublue-os:flatpak-test swap flatpak-session-helper flatpak-session-helper
   rpm -q flatpak --qf "%{NAME} %{VENDOR}\n" | grep ublue-os
+fi
+
+if [ "$(arch)" != "aarch64" ] ; then
+  dnf install -y virtualbox-guest-additions
 fi
