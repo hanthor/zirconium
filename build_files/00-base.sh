@@ -20,62 +20,89 @@ dnf -y remove \
   qemu-user-static* \
   toolbox
 
-dnf install -y \
+# These were manually picked out from a Bluefin comparison with `rpm -qa --qf="%{NAME}\n" `
+dnf -y install \
+  -x PackageKit* \
+  NetworkManager \
+  NetworkManager-adsl \
+  NetworkManager-bluetooth \
+  NetworkManager-config-connectivity-fedora \
+  NetworkManager-libnm \
+  NetworkManager-openconnect \
+  NetworkManager-openvpn \
+  NetworkManager-ssh \
+  NetworkManager-ssh-selinux \
+  NetworkManager-vpnc \
+  NetworkManager-wifi \
+  NetworkManager-wwan \
   alsa-firmware \
   alsa-sof-firmware \
   alsa-tools-firmware \
-  intel-audio-firmware
-
-dnf -y install \
-  NetworkManager-wifi \
   atheros-firmware \
-  brcmfmac-firmware \
-  iwlegacy-firmware \
-  iwlwifi-dvm-firmware \
-  iwlwifi-mvm-firmware \
-  mt7xxx-firmware \
-  nxpwireless-firmware \
-  realtek-firmware \
-  tiwilink-firmware
-
-dnf -y install \
-  gvfs-mtp \
-  jmtpfs \
-  NetworkManager-config-connectivity-fedora \
-  NetworkManager-openvpn \
-  NetworkManager-wwan \
   audispd-plugins \
   audit \
+  brcmfmac-firmware \
   cifs-utils \
   cups \
+  cups-pk-helper \
+  dymo-cups-drivers \
   firewalld \
   fprintd \
   fprintd-pam \
   fuse \
   fuse-common \
   fwupd \
+  gvfs-archive \
+  gvfs-mtp \
+  gvfs-nfs \
   gvfs-smb \
   hplip \
   hyperv-daemons \
   ibus \
   ifuse \
+  intel-audio-firmware \
+  iwlegacy-firmware \
+  iwlwifi-dvm-firmware \
+  iwlwifi-mvm-firmware \
+  jmtpfs \
+  kernel-modules-extra \
   libcamera{,-{v4l2,gstreamer,tools}} \
   libimobiledevice \
+  libimobiledevice-utils \
   libratbag-ratbagd \
   man-db \
+  man-pages \
+  mobile-broadband-provider-info \
+  mt7xxx-firmware \
+  nxpwireless-firmware \
   open-vm-tools \
   open-vm-tools-desktop \
+  openconnect \
+  pam_yubico \
   pcsc-lite \
   plymouth \
   plymouth-system-theme \
+  printer-driver-brlaser \
+  ptouch-driver \
   qemu-guest-agent \
+  realtek-firmware \
+  rsync \
+  spice-vdagent \
   steam-devices \
+  switcheroo-control \
+  system-config-printer-libs \
+  system-config-printer-udev \
   systemd-container \
   systemd-oomd-defaults \
+  thermald \
+  tiwilink-firmware \
   tuned \
   tuned-ppd \
   unzip \
+  usb_modeswitch \
   uxplay \
+  virtualbox-guest-additions \
+  vpnc \
   whois \
   wireguard-tools \
   zram-generator-defaults
