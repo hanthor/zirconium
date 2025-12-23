@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -xeuo pipefail
+# set -xeuo pipefail
 
 install -d /usr/share/zirconium/
 
@@ -21,34 +21,67 @@ dnf -y copr enable avengemedia/danklinux
 dnf -y copr disable avengemedia/danklinux
 dnf -y --enablerepo copr:copr.fedorainfracloud.org:avengemedia:danklinux install quickshell-git
 
-dnf -y copr enable avengemedia/dms-git
-dnf -y copr disable avengemedia/dms-git
-dnf -y \
-    --enablerepo copr:copr.fedorainfracloud.org:avengemedia:dms-git \
-    --enablerepo copr:copr.fedorainfracloud.org:avengemedia:danklinux \
-    install --setopt=install_weak_deps=False \
-    dms \
-    dms-cli \
-    dms-greeter \
-    dgop \
-    dsearch
+# Build dependencies for Caelestia
+dnf -y install \
+    python3-pip \
+    cmake \
+    ninja-build \
+    gcc-c++ \
+    qt6-qtbase-devel \
+    qt6-qtdeclarative-devel \
+    git-core
+
+# Caelestia Runtime Dependencies (Python)
+pip3 install --no-cache-dir --upgrade pillow materialyoucolor
+
+# Build Caelestia CLI
+git clone https://github.com/caelestia-dots/cli.git /tmp/caelestia-cli
+pushd /tmp/caelestia-cli
+pip3 install .
+popd
+rm -rf /tmp/caelestia-cli
+
+# Build Caelestia Shell
+# Install manual dependencies for Shell as per README
+dnf -y install \
+    ddcutil \
+    brightnessctl \
+    NetworkManager \
+    lm_sensors \
+    fish \
+    aubio \
+    pipewire-libs \
+    glibc \
+    qt6-qtdeclarative \
+    libgcc \
+    swappy \
+    libqalculate \
+    bash \
+    qt6-qtbase \
+    qt6-qt5compat
+    
+git clone https://github.com/caelestia-dots/shell.git /tmp/caelestia-shell
+pushd /tmp/caelestia-shell
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+cmake --build build
+cmake --install build
+popd
+rm -rf /tmp/caelestia-shell
 
 dnf -y install \
-    brightnessctl \
     cava \
     chezmoi \
-    ddcutil \
     fastfetch \
     flatpak \
     foot \
     fpaste \
     fzf \
-    git-core \
     glycin-thumbnailer \
     gnome-keyring \
     gnome-keyring-pam \
     greetd \
     greetd-selinux \
+    greetd-tuigreet \
     hyfetch \
     input-remapper \
     just \
@@ -108,7 +141,6 @@ systemctl enable flatpak-preinstall.service
 systemctl enable --global chezmoi-init.service
 systemctl enable --global foot.service
 systemctl enable --global chezmoi-update.timer
-systemctl enable --global dms.service
 systemctl enable --global gnome-keyring-daemon.socket
 systemctl enable --global gnome-keyring-daemon.service
 systemctl enable --global swayidle.service
@@ -124,9 +156,9 @@ cp /usr/share/zirconium/skel/Pictures/Wallpapers/mountains.png /usr/share/zircon
 cp -rf /usr/share/zirconium/skel/* /etc/skel
 git clone "https://github.com/zirconium-dev/zdots.git" /usr/share/zirconium/zdots
 install -d /etc/niri/
-cp -f /usr/share/zirconium/zdots/dot_config/niri/config.kdl /etc/niri/config.kdl
-file /etc/niri/config.kdl | grep -F -e "empty" -v
-stat /etc/niri/config.kdl
+# cp -f /usr/share/zirconium/zdots/dot_config/niri/config.kdl /etc/niri/config.kdl
+# file /etc/niri/config.kdl | grep -F -e "empty" -v
+# stat /etc/niri/config.kdl
 cp -f /usr/share/zirconium/pixmaps/watermark.png /usr/share/plymouth/themes/spinner/watermark.png
 
 mkdir -p "/usr/share/fonts/Maple Mono"

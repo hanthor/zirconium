@@ -1,4 +1,4 @@
-image := env("IMAGE_FULL", "zirconium:latest")
+image := env("IMAGE_FULL", "localhost/zirconium:latest")
 base_dir := env("BUILD_BASE_DIR", ".")
 filesystem := env("BUILD_FILESYSTEM", "ext4")
 
@@ -31,6 +31,7 @@ bootc *ARGS:
     sudo podman run \
         --rm --privileged --pid=host \
         -it \
+        -e LC_ALL=C.UTF-8 -e LANG=C.UTF-8 \
         -v /sys/fs/selinux:/sys/fs/selinux \
         -v /etc/containers:/etc/containers:Z \
         -v /var/lib/containers:/var/lib/containers:Z \
@@ -44,10 +45,16 @@ disk-image $base_dir=base_dir $filesystem=filesystem:
     if [ ! -e "${base_dir}/bootable.img" ] ; then
         fallocate -l 20G "${base_dir}/bootable.img"
     fi
-    just bootc install to-disk --via-loopback /data/bootable.img --filesystem "${filesystem}" --wipe
+    # Copy SSH key for injection
+    cp ~/.ssh/id_ed25519.pub "${base_dir}/root_key.pub"
+    just bootc install to-disk --via-loopback --root-ssh-authorized-keys /data/root_key.pub /data/bootable.img --filesystem "${filesystem}" --wipe
 
 quick-iterate:
     #!/usr/bin/env bash
     podman build -t zirconium:latest --no-cache .
     just rootful
     just disk-image
+
+debug-vm: rootful disk-image
+    #!/usr/bin/env bash
+    bash ./scripts/test-vm.sh

@@ -39,11 +39,7 @@ rm -rf /usr/bin/chsh # footgun
 
 systemctl enable rechunker-group-fix.service
 
-# REQUIRED for dms-greeter to work
-tee /usr/lib/sysusers.d/greeter.conf <<'EOF'
-g greeter 767
-u greeter 767 "Greetd greeter"
-EOF
+
 
 KERNEL_VERSION="$(find "/usr/lib/modules" -maxdepth 1 -type d ! -path "/usr/lib/modules" -exec basename '{}' ';' | sort | tail -n 1)"
 export DRACUT_NO_XATTR=1

@@ -1,0 +1,10 @@
+#!/bin/bash
+# Niri launch wrapper for Caelestia
+
+# Set environment variables for Caelestia if needed (e.g. for themes)
+export CAELESTIA_SHELL_ENABLED=1
+
+# Ensure Niri starts Caelestia Shell via config or here
+# We'll rely on Niri's config.kdl "spawn-at-startup" for the shell itself
+
+exec niri-session "$@"

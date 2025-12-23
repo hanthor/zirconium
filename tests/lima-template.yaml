@@ -1,0 +1,16 @@
+# Lima configuration for Zirconium Testing
+# This file is a template. The placeholder __IMAGE_PATH__ will be replaced by the test script.
+
+images:
+  # location is the absolute path to the qcow2 image
+  - location: "__IMAGE_PATH__"
+    arch: "__ARCH__"
+
+# Enable VNC
+video:
+  display: "vnc"
+
+# SSH Configuration
+# We attempt to rely on standard Lima key injection if cloud-init is present.
+ssh:
+  user: "root"
