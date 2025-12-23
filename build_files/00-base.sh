@@ -30,6 +30,7 @@ dnf -y install \
   NetworkManager-libnm \
   NetworkManager-openconnect \
   NetworkManager-openvpn \
+  NetworkManager-strongswan \
   NetworkManager-ssh \
   NetworkManager-ssh-selinux \
   NetworkManager-vpnc \
